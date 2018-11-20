@@ -21,7 +21,7 @@ void LightSensors::getLight(int *sensors) {
 bool LightSensors::isLight(int *sensor, int treshold) {
   for (int i = 0; i < arrLen(LightSensors::lightSensorPins); i++) {
     if (getLight(i) < treshold) {
-      sensor = i;
+      *sensor = i;
 
       return true;
     }

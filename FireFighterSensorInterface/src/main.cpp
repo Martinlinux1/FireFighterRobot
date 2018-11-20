@@ -1,5 +1,6 @@
 #include "definition.h"
 #include "Motors.h"
+#include "LightSensors.h"
 
 void setup() {
   // put your setup code here, to run once:
