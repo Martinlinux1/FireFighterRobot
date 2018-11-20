@@ -2,15 +2,18 @@
 
 class Motors {
 public:
-  Motors(short *motorPins, int maxSpeed);
+  Motors(short *motorPins);
 
   void motorWrite(char motor, char direction, short speed);
 
-  void writeAB(char direction, short speed);
-  void writeCD(char direction, short speed);
+  void forward(String motors, short speed);
+
+  void backward(String motors, short speed);
 
   void turn(char direction, short speed);
 private:
   short *motorPins;
-  int maxSpeed;
-}
+  short channels[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+  unsigned int frequency = 1000;
+  short resolution = 8;
+};
