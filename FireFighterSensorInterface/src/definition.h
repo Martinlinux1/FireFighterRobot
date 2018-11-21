@@ -1,4 +1,7 @@
 #include <Arduino.h>
+#include "Adafruit_VL53L0X.h"
+
+#define RASPBERRY_PI_I2C_ADDRESS 0x44
 
 #define REG_MOTOR_A 0x01
 #define REG_MOTOR_B 0x02
