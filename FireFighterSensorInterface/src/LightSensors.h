@@ -6,7 +6,7 @@ public:
 
   int getLight(short sensor);
 
-  void getLight(int *sensors);
+  // void getLight(int *sensors);
 
   bool isLight(int *sensor, int treshold);
 private:

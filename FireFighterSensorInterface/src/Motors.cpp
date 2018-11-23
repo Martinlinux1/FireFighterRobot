@@ -12,45 +12,45 @@ Motors::Motors(short *motorPins) {
 void Motors::motorWrite(char motor, char direction, short speed) {
   if (motor == 'A') {
     if (direction == 'F') {
-      ledcWrite(Motors::channels[0], HIGH);
-      ledcWrite(Motors::channels[1], LOW);
+      ledcWrite(Motors::channels[0], speed);
+      ledcWrite(Motors::channels[1], 0);
     }
     else if (direction == 'B') {
-      ledcWrite(Motors::channels[0], LOW);
-      ledcWrite(Motors::channels[1], HIGH);
+      ledcWrite(Motors::channels[0], 0);
+      ledcWrite(Motors::channels[1], speed);
     }
   }
 
   else if (motor == 'B') {
     if (direction == 'F') {
-      ledcWrite(Motors::channels[2], HIGH);
-      ledcWrite(Motors::channels[3], LOW);
+      ledcWrite(Motors::channels[2], speed);
+      ledcWrite(Motors::channels[3], 0);
     }
     else if (direction == 'B') {
-      ledcWrite(Motors::channels[2], LOW);
-      ledcWrite(Motors::channels[3], HIGH);
+      ledcWrite(Motors::channels[2], 0);
+      ledcWrite(Motors::channels[3], speed);
     }
   }
 
   else if (motor == 'C') {
     if (direction == 'F') {
-      ledcWrite(Motors::channels[4], HIGH);
-      ledcWrite(Motors::channels[5], LOW);
+      ledcWrite(Motors::channels[4], speed);
+      ledcWrite(Motors::channels[5], 0);
     }
     else if (direction == 'B') {
-      ledcWrite(Motors::channels[4], LOW);
-      ledcWrite(Motors::channels[5], HIGH);
+      ledcWrite(Motors::channels[4], 0);
+      ledcWrite(Motors::channels[5], speed);
     }
   }
 
   else if (motor == 'D') {
     if (direction == 'F') {
-      ledcWrite(Motors::channels[6], HIGH);
-      ledcWrite(Motors::channels[7], LOW);
+      ledcWrite(Motors::channels[6], speed);
+      ledcWrite(Motors::channels[7], 0);
     }
     else if (direction == 'B') {
-      ledcWrite(Motors::channels[6], LOW);
-      ledcWrite(Motors::channels[7], HIGH);
+      ledcWrite(Motors::channels[6], 0);
+      ledcWrite(Motors::channels[7], speed);
     }
   }
 }
