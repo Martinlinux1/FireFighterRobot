@@ -3,7 +3,7 @@
 
 class ProximitySensors {
 public:
-  ProximitySensors();
+  ProximitySensors(short *sensorsPins);
 
   float getProximity(short sensor);
 
@@ -13,5 +13,5 @@ public:
 private:
   Adafruit_VL53L0X proxSensors[5];
 
-  short sensorAddress[5] = {0x25, 0x26, 0x27, 0x28, 0x29};
+  short sensorAddress[5] = {0x29, 0x2A, 0x2B, 0x2C, 0x2D};
 };

@@ -4,7 +4,7 @@ Motors::Motors(short *motorPins) {
   Motors::motorPins = motorPins;
 
   for (int i = 0; i < arrLen(Motors::motorPins); i++) {
-    ledcSetup(Motors::channels[i], Motors::frequency, Motors::resolution);
+    ledcSetup(Motors::channels[i], Motors::frequency, LEDC_TIMER_13_BIT);
     ledcAttachPin(Motors::motorPins[i], Motors::channels[i]);
   }
 }
@@ -12,8 +12,8 @@ Motors::Motors(short *motorPins) {
 void Motors::motorWrite(char motor, char direction, short speed) {
   if (motor == 'A') {
     if (direction == 'F') {
-      ledcWrite(Motors::channels[0], speed);
-      ledcWrite(Motors::channels[1], 0);
+      Motors::ledcAnalogWrite(Motors::channels[0], speed);
+      Motors::ledcAnalogWrite(Motors::channels[0], 0);
     }
     else if (direction == 'B') {
       ledcWrite(Motors::channels[0], 0);
@@ -90,4 +90,12 @@ void Motors::turn(char direction, short speed) {
     motorWrite('C', 'F', speed);
     motorWrite('D', 'B', speed);
   }
+}
+
+void Motors::ledcAnalogWrite(uint8_t channel, uint32_t value, uint32_t valueMax = 255) {
+  // calculate duty, 8191 from 2 ^ 13 - 1
+  uint32_t duty = (8191 / valueMax) * min(value, valueMax);
+
+  // write duty to LEDC
+  ledcWrite(channel, duty);
 }

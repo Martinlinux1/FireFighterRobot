@@ -1,6 +1,10 @@
 #include "ProximitySensors.h"
 
-ProximitySensors::ProximitySensors() {
+ProximitySensors::ProximitySensors(short *sensorsPins) {
+  for (size_t i = 0; i < arrLen(ProximitySensors::sensorAddress); i++) {
+    
+  }
+
   for (size_t i = 0; i < arrLen(ProximitySensors::sensorAddress); i++) {
     ProximitySensors::proxSensors[i].begin(ProximitySensors::sensorAddress[i]);
   }

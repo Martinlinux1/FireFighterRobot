@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <Wire.h>
-#include "Adafruit_VL53L0X.h"
 
 #define REG_MOTOR_A 0x61  // -> a
 #define REG_MOTOR_B 0x62  // -> b
