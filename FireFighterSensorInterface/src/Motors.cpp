@@ -61,9 +61,9 @@ void Motors::motorWrite(char motor, char direction, short speed) {
 }
 
 void Motors::forward(String motors, short speed) {
-  char motorsC[2];
+  char motorsC[5];
 
-  motors.toCharArray(motorsC, 2);
+  motors.toCharArray(motorsC, 5);
 
   motorWrite(motorsC[0], 'F', speed);
   motorWrite(motorsC[1], 'F', speed);

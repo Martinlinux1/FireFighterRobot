@@ -17,6 +17,7 @@ void setup() {
 
 void loop() {
   motors.forward("AB", 255);
+  motors.motorWrite('B', 'F', 255);
   motors.motorWrite('C', 'F', 127);
   motors.motorWrite('D', 'B', 127);
 }
