@@ -16,19 +16,19 @@ bool CommunicationHandler::decode(String message, int *messageType, String *data
       *messageType = TYPE_LIGHT_SENSOR;
     }
 
-    if (messageCharArr[i] == CommunicationHandler::distanceSensor) {
+    else if (messageCharArr[i] == CommunicationHandler::distanceSensor) {
       i++;
       *data = CommunicationHandler::getDataFromMessage(message);
       *messageType = TYPE_DISTANCE_SENSOR;
     }
 
-    if (messageCharArr[i] == CommunicationHandler::imuSensor) {
+    else if (messageCharArr[i] == CommunicationHandler::imuSensor) {
       i++;
       *data = CommunicationHandler::getDataFromMessage(message);
       *messageType = TYPE_IMU;
     }
 
-    if (messageCharArr[i] == CommunicationHandler::motor) {
+    else if (messageCharArr[i] == CommunicationHandler::motor) {
       i++;
       *data = CommunicationHandler::getDataFromMessage(message);
       *messageType = TYPE_MOTOR;
@@ -44,6 +44,60 @@ bool CommunicationHandler::decode(String message, int *messageType, String *data
   }
 
   return true;
+}
+
+String CommunicationHandler::encode(int messageType, String data) {
+  String message = "";
+  message += CommunicationHandler::messageStart;
+  
+  if (messageType == TYPE_LIGHT_SENSOR) {
+    message += CommunicationHandler::lightSensor;
+  }
+
+  else if (messageType == TYPE_DISTANCE_SENSOR) {
+    message += CommunicationHandler::distanceSensor;
+  }
+
+  else if (messageType == TYPE_IMU) {
+    message += CommunicationHandler::imuSensor;
+  }
+
+  else if (messageType == TYPE_MOTOR) {
+    message += CommunicationHandler::motor;
+  }
+
+  else {
+    return "";
+  }
+
+  message += CommunicationHandler::dataStart;
+  message += data;
+
+  message += CommunicationHandler::dataEnd;
+  message += CommunicationHandler::messageEnd;
+
+  return message;
+}
+
+String CommunicationHandler::readMessage() {
+  String message = "";
+  if (Serial.read() == CommunicationHandler::messageStart) {
+    message += CommunicationHandler::messageStart;
+  
+    char reading = 'x';
+
+    while (Serial.available() && reading != CommunicationHandler::messageEnd) {
+      reading = Serial.read();
+
+      message += reading;
+
+      delay(3);
+    }
+    
+    return message;
+  }
+
+  return "";
 }
 
 String CommunicationHandler::getDataFromMessage(String message) {

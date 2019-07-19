@@ -14,7 +14,7 @@ class CommunicationHandler {
     String encode(int messageType, String data);
   private:
     String getDataFromMessage(String message);
-
+    
     const char lightSensor = 'L';
     const char distanceSensor = 'D';
     const char imuSensor = 'I';
