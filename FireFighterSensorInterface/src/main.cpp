@@ -38,6 +38,8 @@ CommunicationHandler commHandler;
 void setup() {
   Serial.begin(115200);
 
+  pinMode(2, OUTPUT);
+
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 2; j++) {
       ledcSetup(motorChannels[i][j], 1000, 8);
@@ -48,6 +50,7 @@ void setup() {
 
 void loop() {
   if (Serial.available()) {
+    digitalWrite(2, HIGH);
     String message = commHandler.readMessage();
 
     int messageType;
@@ -55,15 +58,11 @@ void loop() {
     bool isValid = commHandler.decode(message, &messageType, &data);
 
     if (isValid) {
-      Serial.print("Got message: ");
-      Serial.println(message);
-
       String response;
       String responseEncoded;
 
       if (messageType == TYPE_LIGHT_SENSOR) {
         int sensorIndex = data.toInt();
-        Serial.println(sensorIndex);
         response = String(sensorIndex) + ",55";
 
         responseEncoded = commHandler.encode(TYPE_LIGHT_SENSOR, response);
@@ -108,7 +107,6 @@ void loop() {
         int speed = data.substring(data.lastIndexOf(",") + 1, data.indexOf("}")).toInt();
 
         motors[motorIndex].motorWrite(direction[0], speed);
-        Serial.println("mopslik");
 
         response = motor + "," + direction[0] + "," + speed;
 
