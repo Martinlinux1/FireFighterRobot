@@ -1,3 +1,5 @@
+import errors
+
 class CommunicationHandler:
     def __init__(self, seriallink):
         self.serial = seriallink
@@ -20,7 +22,7 @@ class CommunicationHandler:
         if response.startswith(b'<') and response.endswith(b'\n'):
             return response[:response.find(b'\n')].decode('ascii')
         else:
-            raise InvalidMessageException
+            raise errors.InvalidMessageException
 
     def get_light_sensor_data(self, sensor):
         message = self.messageStart + self.lightSensor + self.dataStart + str(sensor) + self.dataEnd + self.messageEnd
@@ -32,7 +34,7 @@ class CommunicationHandler:
 
             return int(data)
         else:
-            raise InvalidMessageException
+            raise errors.InvalidMessageException
 
     def get_distance_sensor_data(self, sensor):
         message = self.messageStart + self.distanceSensor + self.dataStart + str(sensor) + self.dataEnd + self.messageEnd
@@ -44,7 +46,7 @@ class CommunicationHandler:
 
             return int(data)
         else:
-            raise InvalidMessageException
+            raise errors.InvalidMessageException
 
     def get_imu_sensor_data(self):
         message = self.messageStart + self.imuSensor + self.dataStart + self.dataEnd + self.messageEnd
@@ -56,7 +58,7 @@ class CommunicationHandler:
 
             return int(data)
         else:
-            raise InvalidMessageException
+            raise errors.InvalidMessageException
 
     def write_motor(self, motor, direction, speed):
         message = self.messageStart + self.motor + self.dataStart + motor + "," + direction + "," + str(speed) \
@@ -67,9 +69,4 @@ class CommunicationHandler:
         if response == message:
             return True
         else:
-            raise InvalidMessageException
-
-
-class InvalidMessageException(Exception):
-    """Is raised, when invalid/no message is received as a response."""
-    pass
+            raise errors.InvalidMessageException
