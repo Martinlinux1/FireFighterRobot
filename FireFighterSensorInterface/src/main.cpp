@@ -1,3 +1,12 @@
+/**
+ * The sensor interface of fire fighter robot. Reads light, distance(not implemented yet), 
+ * angle(not implemented yet) of the robot and controls the motors(4). It communicates with Raspberry Pi 
+ * logic unit, that controls the robot.
+ * 
+ * Creator: Martinlinux
+ * Version: 0.0
+ */
+
 #include <Arduino.h>
 #include <Motors/Motor.h>
 #include <Sensors/LightSensor.h>
@@ -13,6 +22,7 @@ int motorChannels[4][2] = {
   {6, 7}
 };
 
+// Creates motor class instance.
 Motor motors[4] = {
   Motor(motorChannels[0]),
   Motor(motorChannels[1]),
@@ -20,6 +30,7 @@ Motor motors[4] = {
   Motor(motorChannels[3])
 };
 
+// Creates light sensor class instance.
 LightSensor lightSensors[8] = {
   LightSensor(lightSensorPins[0]),
   LightSensor(lightSensorPins[1]),
@@ -31,91 +42,125 @@ LightSensor lightSensors[8] = {
   LightSensor(lightSensorPins[7])
 };
 
+// Creates communicationHandler class instance.
 CommunicationHandler commHandler;
 
-
-
+// Setup function.
 void setup() {
+  // Serial link setup.
   Serial.begin(115200);
 
-  pinMode(2, OUTPUT);
-
+  // Motor pins setup.
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 2; j++) {
+      pinMode(motorPins[i + j], OUTPUT);
       ledcSetup(motorChannels[i][j], 1000, 8);
       ledcAttachPin(motorPins[i + j], motorChannels[i][j]);
     }
   }
 }
 
+// Loop function.
 void loop() {
+  // If request was sent from RPi.
   if (Serial.available()) {
-    digitalWrite(2, HIGH);
+    // Read the request.
     String message = commHandler.readMessage();
 
     int messageType;
     String data;
+    // Decode the request.
     bool isValid = commHandler.decode(message, &messageType, &data);
 
+    // If the request is valid.
     if (isValid) {
       String response;
       String responseEncoded;
 
+      // If request's type is light sensor.
       if (messageType == TYPE_LIGHT_SENSOR) {
         int sensorIndex = data.toInt();
-        response = String(sensorIndex) + ",55";
+        // Read the light sensor.
+        int lightSensorReading = lightSensors[sensorIndex].read();
 
+        // Form the response
+        response = String(sensorIndex) + "," + String(lightSensorReading);
+        
+        // Encode the response.
         responseEncoded = commHandler.encode(TYPE_LIGHT_SENSOR, response);
       }
 
+      // If the request's type is distance sensor.
       else if (messageType == TYPE_DISTANCE_SENSOR) {
         int sensorIndex = data.toInt();
-
+        
+        // Form the response.
         response = String(sensorIndex) + ",45";
+
+        // Encode the response.
         responseEncoded = commHandler.encode(TYPE_DISTANCE_SENSOR, response);
       }
 
+      // If the request's type is IMU sensor.
       else if (messageType == TYPE_IMU) {
+        // Form the response.
         response = "65";
+
+        // Encode the response.
         responseEncoded = commHandler.encode(TYPE_IMU, response);
       }
 
       else if (messageType == TYPE_MOTOR) {
+        // Get the motor to be turned on.
         String motor = data.substring(0, data.indexOf(","));
         int motorIndex;
+
+        // Motor A -> motor 0.
         if (motor == "A") {
           motorIndex = 0;
         }
 
+        // Motor B -> motor 1.
         else if (motor == "B") {
           motorIndex = 1;
         }
 
+        // Motor C -> motor 2.
         else if (motor == "C") {
           motorIndex = 2;
         }
 
+        // Motor D -> motor 3.
         else if (motor == "D") {
           motorIndex = 3;
         }
 
+        // Invalid request.
         else {
           return;
         }
+
+        // Get the direction.
         char direction[10];
         data.substring(data.indexOf(",") + 1, data.lastIndexOf(",")).toCharArray(direction, 10);
         int speed = data.substring(data.lastIndexOf(",") + 1, data.indexOf("}")).toInt();
-
+        
+        // Write the motor.
         motors[motorIndex].motorWrite(direction[0], speed);
 
+        // Form the response.
         response = motor + "," + direction[0] + "," + speed;
-
+        
+        // Encode the response.
         responseEncoded = commHandler.encode(TYPE_MOTOR, response);
       }
 
+      // Invalid request.
       else {
         return; 
       }
+
+      // Send the response.
       responseEncoded += "\n";
       Serial.print(responseEncoded);
     }
