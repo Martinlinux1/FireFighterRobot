@@ -13,7 +13,7 @@
 #include <Sensors/DistanceSensor.h>
 #include <communicationHandler.h>
 
-int motorPins[8] = {19, 18, 5, 17, 16, 4, 0, 2};
+int motorPins[8] = {19, 18, 5, 17, 16, 4, 2, 0};
 int lightSensorPins[8] = {36, 39, 34, 35, 32, 33, 25, 26};
 int motorChannels[4][2] = {
   {0, 1},
@@ -50,18 +50,22 @@ void setup() {
   // Serial link setup.
   Serial.begin(115200);
 
-  // Motor pins setup.
+  // Motors pins setup.
+  int k = 0;
   for (int i = 0; i < 4; i++) {
     for (int j = 0; j < 2; j++) {
-      pinMode(motorPins[i + j], OUTPUT);
+      pinMode(motorPins[k], OUTPUT);
       ledcSetup(motorChannels[i][j], 1000, 8);
-      ledcAttachPin(motorPins[i + j], motorChannels[i][j]);
+      ledcAttachPin(motorPins[k], motorChannels[i][j]);
+      k++;
     }
   }
 }
 
 // Loop function.
 void loop() {
+  digitalWrite(0, LOW);
+  digitalWrite(2, LOW);
   // If request was sent from RPi.
   if (Serial.available()) {
     // Read the request.

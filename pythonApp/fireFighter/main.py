@@ -1,20 +1,37 @@
 import serial
 import communicationHandler
+import motorController
+from time import sleep
 
 serialLink = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.05)
 
 commHandler = communicationHandler.CommunicationHandler(serialLink)
 
-if commHandler.write_motor('A', 'F', 255):
-    print('Turning motor A successful')
+motors = motorController.MotorHandler(commHandler)
 
-if commHandler.write_motor('B', 'B', 120):
-    print('turning motor B successful')
+while True:
+    commHandler.write_motor('A', 'F', 255)
+    commHandler.write_motor('B', 'F', 255)
 
-for i in range(8):
-    print(commHandler.get_light_sensor_data(i))
+    sleep(5)
 
-for i in range(5):
-    print(commHandler.get_distance_sensor_data(i))
+    commHandler.write_motor('A', 'B', 255)
+    commHandler.write_motor('B', 'B', 255)
 
-print(commHandler.get_imu_sensor_data())
+    sleep(5)
+
+    commHandler.write_motor('A', 'B', 0)
+    commHandler.write_motor('B', 'B', 0)
+
+    commHandler.write_motor('C', 'F', 255)
+    commHandler.write_motor('D', 'F', 255)
+
+    sleep(5)
+
+    commHandler.write_motor('C', 'B', 255)
+    commHandler.write_motor('D', 'B', 255)
+
+    sleep(5)
+
+    commHandler.write_motor('C', 'B', 0)
+    commHandler.write_motor('D', 'B', 0)
