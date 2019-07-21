@@ -1,16 +1,45 @@
-#include "definition.h"
+/**
+ * Handles communication between the interface and anothr device via serial link. It encodes, decodes and 
+ * reads messages in this format:
+ *      < message_type { data } >
+ *    
+ *    < - message start character 
+ *    message_type:
+ *      L - light sensor reading
+ *      D - distance sensor reading
+ *      I - IMU sensor reading(not implemented yet)
+ *      M - motor writing
+ * 
+ *    { - data block start character
+ *    data - data to send
+ *    } - data block end character
+ *    > - message end character
+ * 
+ * Creator: Martinlinux
+ * Version: 1.0
+ */
 
+#include <Arduino.h>
 #define TYPE_LIGHT_SENSOR 0
 #define TYPE_DISTANCE_SENSOR 1
 #define TYPE_MOTOR 2
 #define TYPE_IMU 3
 
+
 class CommunicationHandler {
   public:
+    /// <Summary> Reads message via serial link
     String readMessage();
-
+    
+    /// <Summary> Decodes message received from another device.
+    /// <param name="message"> The received message
+    /// <param name="*messageType"> Return value, the type of message.
+    /// <param name="*data"> Return value, the data received.
     bool decode(String message, int *messageType, String *data);
 
+    /// <Summary> Encodes message.
+    /// <param name="messageType"> The type of the message to be encoded.
+    /// <param name="data"> The data to be encoded.
     String encode(int messageType, String data);
   private:
     String getDataFromMessage(String message);

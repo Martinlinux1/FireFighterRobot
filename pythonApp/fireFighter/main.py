@@ -18,4 +18,3 @@ for i in range(5):
     print(commHandler.get_distance_sensor_data(i))
 
 print(commHandler.get_imu_sensor_data())
-
