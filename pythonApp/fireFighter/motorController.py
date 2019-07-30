@@ -13,14 +13,18 @@ class MotorHandler:
             raise errors.InvalidArgumentException
 
         # If motors to run are A and B.
-        if motors == "AB" or motors == "BA":
+        if motors == 'AB' or motors == 'BA':
             self._communicationHandler.write_motor('A', 'F', speed)
             self._communicationHandler.write_motor('B', 'F', speed)
+            self._communicationHandler.write_motor('C', 'F', speed / 2)
+            self._communicationHandler.write_motor('D', 'B', speed / 2)
 
         # If motors to run are C and D
-        elif motors == "CD" or motors == "DC":
+        elif motors == 'CD' or motors == 'DC':
             self._communicationHandler.write_motor('C', 'F', speed)
             self._communicationHandler.write_motor('D', 'F', speed)
+            self._communicationHandler.write_motor('A', 'F', speed / 2)
+            self._communicationHandler.write_motor('B', 'B', speed / 2)
 
         # Invalid arguments.
         else:
@@ -33,14 +37,18 @@ class MotorHandler:
             raise errors.InvalidArgumentException
 
         # If motors to run are A and B.
-        if motors == "AB" or motors == "BA":
+        if motors == 'AB' or motors == 'BA':
             self._communicationHandler.write_motor('A', 'B', speed)
             self._communicationHandler.write_motor('B', 'B', speed)
+            self._communicationHandler.write_motor('C', 'B', speed / 2)
+            self._communicationHandler.write_motor('D', 'F', speed / 2)
 
         # If motors to run are C and D.
-        elif motors == "CD" or motors == "DC":
+        elif motors == 'CD' or motors == 'DC':
             self._communicationHandler.write_motor('C', 'B', speed)
             self._communicationHandler.write_motor('D', 'B', speed)
+            self._communicationHandler.write_motor('A', 'B', speed / 2)
+            self._communicationHandler.write_motor('B', 'F', speed / 2)
 
         # Invalid arguments.
         else:
@@ -79,6 +87,19 @@ class MotorHandler:
                     self._communicationHandler.write_motor('D', 'F', speed)
                 # stop motors.
                 self.brake()
+
+    """Turns the robot until externally stopped."""
+    def turn(self, direction, speed):
+        if direction == 'L':
+            self._communicationHandler.write_motor('A', 'B', speed)
+            self._communicationHandler.write_motor('B', 'F', speed)
+            self._communicationHandler.write_motor('C', 'B', speed)
+            self._communicationHandler.write_motor('D', 'F', speed)
+        elif direction == 'R':
+            self._communicationHandler.write_motor('A', 'F', speed)
+            self._communicationHandler.write_motor('B', 'B', speed)
+            self._communicationHandler.write_motor('C', 'F', speed)
+            self._communicationHandler.write_motor('D', 'B', speed)
 
     """Stops all motors."""
     def brake(self):
