@@ -1,12 +1,12 @@
 import errors
-
+import MathUtils
 
 class MotorHandler:
-    """Handles motor motion."""
+    """Handles 4 motors with mecanum wheels motion."""
     def __init__(self, communication_handler):
         self._communicationHandler = communication_handler
 
-    """Moves two motors forward"""
+    """Moves the robot forward"""
     def forward(self, motors, speed):
         # Invalid argument.
         if speed > 255:
@@ -16,21 +16,21 @@ class MotorHandler:
         if motors == 'AB' or motors == 'BA':
             self._communicationHandler.write_motor('A', 'F', speed)
             self._communicationHandler.write_motor('B', 'F', speed)
-            self._communicationHandler.write_motor('C', 'F', speed / 2)
-            self._communicationHandler.write_motor('D', 'B', speed / 2)
+            self._communicationHandler.write_motor('C', 'F', speed)
+            self._communicationHandler.write_motor('D', 'B', speed)
 
         # If motors to run are C and D
         elif motors == 'CD' or motors == 'DC':
             self._communicationHandler.write_motor('C', 'F', speed)
             self._communicationHandler.write_motor('D', 'F', speed)
-            self._communicationHandler.write_motor('A', 'F', speed / 2)
-            self._communicationHandler.write_motor('B', 'B', speed / 2)
+            self._communicationHandler.write_motor('A', 'F', speed)
+            self._communicationHandler.write_motor('B', 'B', speed)
 
         # Invalid arguments.
         else:
             raise errors.InvalidArgumentException
 
-    """Moves two motors backward."""
+    """Moves the robot backward."""
     def backward(self, motors, speed):
         # Invalid argument.
         if speed > 255:
@@ -40,19 +40,85 @@ class MotorHandler:
         if motors == 'AB' or motors == 'BA':
             self._communicationHandler.write_motor('A', 'B', speed)
             self._communicationHandler.write_motor('B', 'B', speed)
-            self._communicationHandler.write_motor('C', 'B', speed / 2)
-            self._communicationHandler.write_motor('D', 'F', speed / 2)
+            self._communicationHandler.write_motor('C', 'B', speed)
+            self._communicationHandler.write_motor('D', 'F', speed)
 
         # If motors to run are C and D.
         elif motors == 'CD' or motors == 'DC':
             self._communicationHandler.write_motor('C', 'B', speed)
             self._communicationHandler.write_motor('D', 'B', speed)
-            self._communicationHandler.write_motor('A', 'B', speed / 2)
-            self._communicationHandler.write_motor('B', 'F', speed / 2)
+            self._communicationHandler.write_motor('A', 'B', speed)
+            self._communicationHandler.write_motor('B', 'F', speed)
 
         # Invalid arguments.
         else:
             raise errors.InvalidArgumentException
+
+    def left(self, speed):
+        self._communicationHandler.write_motor('A', 'B', speed)
+        self._communicationHandler.write_motor('B', 'F', speed)
+        self._communicationHandler.write_motor('C', 'F', speed)
+        self._communicationHandler.write_motor('D', 'B', speed)
+
+    def right(self, speed):
+        self._communicationHandler.write_motor('A', 'F', speed)
+        self._communicationHandler.write_motor('B', 'B', speed)
+        self._communicationHandler.write_motor('C', 'B', speed)
+        self._communicationHandler.write_motor('D', 'F', speed)
+
+    """Slides the robot to a given angle."""
+    def slide(self, angle, speed):
+        if angle >= 0:
+            if angle <= 45:
+                bc_speed = MathUtils.valmap(angle, 45, 0, 0, 255)
+                self._communicationHandler.write_motor('A', 'F', speed)
+                self._communicationHandler.write_motor('B', 'F', bc_speed)
+                self._communicationHandler.write_motor('C', 'F', bc_speed)
+                self._communicationHandler.write_motor('D', 'F', speed)
+            elif angle <= 90:
+                bc_speed = MathUtils.valmap(angle, 45, 90, 0, 255)
+                self._communicationHandler.write_motor('A', 'F', speed)
+                self._communicationHandler.write_motor('B', 'B', bc_speed)
+                self._communicationHandler.write_motor('C', 'B', bc_speed)
+                self._communicationHandler.write_motor('D', 'F', speed)
+            elif angle <= 135:
+                bc_speed = MathUtils.valmap(angle, 90, 135, 0, 255)
+                self._communicationHandler.write_motor('A', 'F', speed)
+                self._communicationHandler.write_motor('B', 'B', bc_speed)
+                self._communicationHandler.write_motor('C', 'B', bc_speed)
+                self._communicationHandler.write_motor('D', 'F', speed)
+            elif angle <= 180:
+                bc_speed = MathUtils.valmap(angle, 135, 180, 0, 255)
+                self._communicationHandler.write_motor('A', 'B', speed)
+                self._communicationHandler.write_motor('B', 'B', bc_speed)
+                self._communicationHandler.write_motor('C', 'B', bc_speed)
+                self._communicationHandler.write_motor('D', 'B', speed)
+
+        else:
+            if angle >= -45:
+                ad_speed = MathUtils.valmap(angle, -45, 0, 0, 255)
+                self._communicationHandler.write_motor('A', 'F', ad_speed)
+                self._communicationHandler.write_motor('B', 'F', speed)
+                self._communicationHandler.write_motor('C', 'F', speed)
+                self._communicationHandler.write_motor('D', 'F', ad_speed)
+            elif angle >= -90:
+                ad_speed = MathUtils.valmap(angle, -45, -90, 0, 255)
+                self._communicationHandler.write_motor('A', 'B', ad_speed)
+                self._communicationHandler.write_motor('B', 'F', speed)
+                self._communicationHandler.write_motor('C', 'F', speed)
+                self._communicationHandler.write_motor('D', 'B', ad_speed)
+            elif angle >= -135:
+                ad_speed = MathUtils.valmap(angle, -90, -135, 0, 255)
+                self._communicationHandler.write_motor('A', 'B', ad_speed)
+                self._communicationHandler.write_motor('B', 'F', speed)
+                self._communicationHandler.write_motor('C', 'F', speed)
+                self._communicationHandler.write_motor('D', 'B', ad_speed)
+            elif angle >= -180:
+                ad_speed = MathUtils.valmap(angle, -135, -180, 0, 255)
+                self._communicationHandler.write_motor('A', 'B', ad_speed)
+                self._communicationHandler.write_motor('B', 'B', speed)
+                self._communicationHandler.write_motor('C', 'B', speed)
+                self._communicationHandler.write_motor('D', 'B', ad_speed)
 
     """Turns the robot to a given angle"""
     def turn(self, angle, speed):
