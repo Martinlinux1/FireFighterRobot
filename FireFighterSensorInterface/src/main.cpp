@@ -97,6 +97,7 @@ void loop() {
       // If the request's type is distance sensor.
       else if (messageType == TYPE_DISTANCE_SENSOR) {
         int sensorIndex = data.toInt();
+        int reading = lightSensors[sensorIndex].read();
         
         // Form the response.
         response = String(sensorIndex) + ",45";
