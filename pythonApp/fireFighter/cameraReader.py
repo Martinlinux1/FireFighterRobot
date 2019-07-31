@@ -4,24 +4,32 @@ class CameraReader:
         self._temperatures = self._thermal_camera.initializeFrame()
 
     def read_camera(self):
-        sub_frame_0 = self._thermal_camera.updateFrame()
-        sub_frame_1 = self._thermal_camera.updateFrame()
+        sub_frame_0 = self._thermal_camera.initializeFrame()
+        sub_frame_1 = self._thermal_camera.initializeFrame()
+
+        self._thermal_camera.updateFrame(sub_frame_0)
+        self._thermal_camera.updateFrame(sub_frame_1)
 
         for i in range(768):
             if i % 2 == 1:
-                self._temperatures[i] = sub_frame_0
+                self._temperatures[i] = sub_frame_0[i]
             else:
-                self._temperatures[i] = sub_frame_1
+                self._temperatures[i] = sub_frame_1[i]
 
         return self._temperatures
 
     def is_fire(self, threshold):
+        self.read_camera()
         fire_positions = []
         for i in range(768):
             if self._temperatures[i] >= threshold:
+
                 fire_positions.append([i % 32, i % 24, self._temperatures[i]])
 
-        return True, fire_positions
+        if fire_positions:
+            return True, fire_positions
+        else:
+            return False, -1
 
     def coordinates_to_angle(self, fire_coordinates):
         fire_angles = []
