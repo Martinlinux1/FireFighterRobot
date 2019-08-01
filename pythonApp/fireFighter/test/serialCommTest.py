@@ -1,6 +1,6 @@
 import unittest
 import communicationHandler
-import fakeSerial
+import test.fakeSerial
 
 
 class MyTestCase(unittest.TestCase):

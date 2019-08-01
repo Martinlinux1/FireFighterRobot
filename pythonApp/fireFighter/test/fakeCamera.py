@@ -15,5 +15,5 @@ class FakeCamera:
             frame[i] = random.randint(0, self._fire_threshold - 1)
 
         for i in range(self._num_candles):
-            x = random.randint(0, 768)
+            x = random.randint(0, 767)
             frame[x] = random.randint(self._fire_threshold, 300)

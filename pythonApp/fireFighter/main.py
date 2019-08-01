@@ -1,16 +1,39 @@
-from test import fakeCamera
-import  cameraReader
+import threading
+from pyusb2fir import USB2FIR
+import cameraReader
 from time import sleep
 
 
-thermal_camera = fakeCamera.FakeCamera(4, 49)
-cam = cameraReader.CameraReader(thermal_camera)
+def camera_fetcher():
+    t = threading.currentThread()
+    while getattr(t, "do_run", True):
+        cam.read_camera()
 
-sleep(2)
+
+thermal_camera = USB2FIR()
+cam = cameraReader.CameraReader(thermal_camera)
+t = threading.Thread(target=camera_fetcher)
+t.start()
 
 while True:
     fire_coordinates = cam.is_fire(50)
     if fire_coordinates[0]:
-        print(fire_coordinates)
-    sleep(0.5)
+        print("Fire on: ", fire_coordinates)
 
+        all_fire_angles = cam.coordinates_to_angle(fire_coordinates[1])
+
+        print("Robot needs to turn: ", all_fire_angles)
+
+        max_val = [0, 0, 0]
+        for i in fire_coordinates[1]:
+            print(i[2])
+            if i[2] > max_val[2]:
+                max_val = i
+
+        print("Fire closest to robot: ", max_val)
+
+        max_fire_angle = cam.coordinates_to_angle(max_val)
+
+        print("Robot turning: ", max_fire_angle)
+
+    sleep(0.5)
