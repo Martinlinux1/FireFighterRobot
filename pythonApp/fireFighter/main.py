@@ -13,10 +13,11 @@ def camera_fetcher():
 thermal_camera = USB2FIR()
 cam = cameraReader.CameraReader(thermal_camera)
 t = threading.Thread(target=camera_fetcher)
+t.daemon = True
 t.start()
 
 while True:
-    fire_coordinates = cam.is_fire(50)
+    fire_coordinates = cam.is_fire(60)
     if fire_coordinates[0]:
         print("Fire on: ", fire_coordinates)
 
