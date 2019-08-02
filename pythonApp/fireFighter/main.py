@@ -1,4 +1,5 @@
 import threading
+import test.fakeCamera
 from pyusb2fir import USB2FIR
 import cameraReader
 from time import sleep
@@ -7,10 +8,10 @@ from time import sleep
 def camera_fetcher():
     t = threading.currentThread()
     while getattr(t, "do_run", True):
-        cam.read_camera()
+        x = cam.read_camera()
 
 
-thermal_camera = USB2FIR()
+thermal_camera = test.fakeCamera.FakeCamera(4, 60)
 cam = cameraReader.CameraReader(thermal_camera)
 t = threading.Thread(target=camera_fetcher)
 t.daemon = True
@@ -27,7 +28,6 @@ while True:
 
         max_val = [0, 0, 0]
         for i in fire_coordinates[1]:
-            print(i[2])
             if i[2] > max_val[2]:
                 max_val = i
 

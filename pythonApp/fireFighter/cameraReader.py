@@ -1,3 +1,6 @@
+import math
+
+
 class CameraReader:
     def __init__(self, thermal_camera):
         self._thermal_camera = thermal_camera
@@ -21,12 +24,23 @@ class CameraReader:
     def is_fire(self, threshold):
         fire_positions = []
         for i in range(768):
-            if self._temperatures[i] >= threshold:
-                fire_positions.append([i % 32, i % 24, self._temperatures[i]])
+            no_fire_pixels_around = self._temperatures[i - 1] < threshold and self._temperatures[i - 32] < threshold and self._temperatures[i - 33] < threshold
+
+            if self._temperatures[i] >= threshold and no_fire_pixels_around:
+                print(i)
+                fire_positions.append([i % 32, math.floor(i / 32), self._temperatures[i]])
         if fire_positions:
             return True, fire_positions
         else:
             return False, -1
+
+    def max_fire(self, fire_coordinates):
+        max_val = [0, 0, 0]
+        for i in fire_coordinates[1]:
+            print(i[2])
+            if i[2] > max_val[2]:
+                max_val = i
+        return max_val
 
     def coordinates_to_angle(self, fire_coordinates):
         fire_angles = []
