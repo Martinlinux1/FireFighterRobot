@@ -34,7 +34,8 @@ class CameraReader:
         else:
             return False, -1
 
-    def max_fire(self, fire_coordinates):
+    @staticmethod
+    def max_fire(fire_coordinates):
         max_val = [0, 0, 0]
         for i in fire_coordinates[1]:
             print(i[2])
@@ -42,7 +43,8 @@ class CameraReader:
                 max_val = i
         return max_val
 
-    def coordinates_to_angle(self, fire_coordinates):
+    @staticmethod
+    def coordinates_to_angle(fire_coordinates):
         fire_angles = []
 
         if isinstance(fire_coordinates[0], list):
