@@ -1,14 +1,14 @@
 import threading
-import test.fakeCamera
-from pyusb2fir import USB2FIR
-from cameraReader import CameraReader
 from time import sleep
+
+from cameraReader import CameraReader
+from pyusb2fir import USB2FIR
 
 
 def camera_fetcher():
     t = threading.currentThread()
     while getattr(t, "do_run", True):
-        x = cam.read_camera()
+        cam.read_camera()
 
 
 thermal_camera = USB2FIR()
