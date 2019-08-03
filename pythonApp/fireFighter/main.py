@@ -8,7 +8,7 @@ from pyusb2fir import USB2FIR
 def camera_fetcher():
     t = threading.currentThread()
     while getattr(t, "do_run", True):
-        cam.read_camera()
+        x = cam.read_camera()
 
 
 thermal_camera = USB2FIR()
