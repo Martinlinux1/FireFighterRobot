@@ -16,7 +16,7 @@
 
 
 
-int motorPins[8] = {19, 18, 5, 17, 16, 4, 2, 0};
+int motorPins[8] = {19, 18, 17, 5, 2, 0, 4, 16};
 int lightSensorPins[8] = {36, 39, 34, 35, 32, 33, 25, 26};
 int motorChannels[4][2] = {
   {0, 1},
