@@ -1,40 +1,15 @@
-import threading
-import test.fakeCamera
-from pyusb2fir import USB2FIR
-from cameraReader import CameraReader
-from time import sleep
+import cv2
+from haarCascadeFireDetection import HaarCascadeFireDetection
 
 
-def camera_fetcher():
-    t = threading.currentThread()
-    while getattr(t, "do_run", True):
-        x = cam.read_camera()
+fire_detector = HaarCascadeFireDetection('fire_detection.xml')
+img = cv2.imread('fire_2.jpg')
+fires = fire_detector.detect_fire(img)
 
+for (x, y, w, h) in fires:
+    cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
+    roi_color = img[y:y + h, x:x + w]
 
-thermal_camera = USB2FIR()
-cam = CameraReader(thermal_camera)
-t = threading.Thread(target=camera_fetcher)
-t.daemon = True
-t.start()
-
-while True:
-    fire_coordinates = cam.is_fire(60)
-    if fire_coordinates[0]:
-        print("Fire on: ", fire_coordinates)
-
-        all_fire_angles = cam.coordinates_to_angle(fire_coordinates[1])
-
-        print("Robot needs to turn: ", all_fire_angles)
-
-        max_val = [0, 0, 0]
-        for i in fire_coordinates[1]:
-            if i[2] > max_val[2]:
-                max_val = i
-
-        print("Fire closest to robot: ", max_val)
-
-        max_fire_angle = CameraReader.coordinates_to_angle(fire_coordinates)
-
-        print("Robot turning: ", max_fire_angle)
-
-    sleep(0.5)
+cv2.imshow('img', img)
+cv2.waitKey()
+cv2.destroyAllWindows()
