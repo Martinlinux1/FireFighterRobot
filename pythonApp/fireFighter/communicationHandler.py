@@ -50,6 +50,22 @@ class CommunicationHandler:
         else:
             raise errors.InvalidMessageException
 
+    def get_light_sensors_data(self):
+        # Construct the request.
+        message = self._messageStart + self._lightSensor + self._dataStart + self._dataEnd + self._messageEnd
+
+        # Send the request and wait for response.
+        response = self.write_message(message)
+        # If the response is valid, return sent data.
+        if response[1] == self._lightSensor:
+            data = response[response.find('{') + 1:response.find('}')]
+
+            sensors_data = [int(e) if e.isdigit() else e for e in data.split(',')]
+            return sensors_data
+        # Invalid response.
+        else:
+            raise errors.InvalidMessageException
+
     """Reads data from distance sensor."""
     def get_distance_sensor_data(self, sensor):
         # Construct the request.

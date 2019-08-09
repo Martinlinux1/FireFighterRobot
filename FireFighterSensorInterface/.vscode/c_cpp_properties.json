@@ -8,8 +8,10 @@
             "includePath": [
                 "/home/robomaze/FireFighterRobot/FireFighterSensorInterface/include",
                 "/home/robomaze/FireFighterRobot/FireFighterSensorInterface/src",
-                "/home/robomaze/.platformio/lib/Adafruit Unified Sensor_ID31",
                 "/home/robomaze/.platformio/lib/Adafruit_VL53L0X_ID1494/src",
+                "/home/robomaze/.platformio/lib/Adafruit Unified Sensor_ID31",
+                "/home/robomaze/.platformio/lib/I2Cdevlib-MPU6050_ID107",
+                "/home/robomaze/.platformio/lib/I2Cdevlib-Core_ID11",
                 "/home/robomaze/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                 "/home/robomaze/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/config",
                 "/home/robomaze/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/app_trace",
@@ -111,8 +113,10 @@
                 "path": [
                     "/home/robomaze/FireFighterRobot/FireFighterSensorInterface/include",
                     "/home/robomaze/FireFighterRobot/FireFighterSensorInterface/src",
-                    "/home/robomaze/.platformio/lib/Adafruit Unified Sensor_ID31",
                     "/home/robomaze/.platformio/lib/Adafruit_VL53L0X_ID1494/src",
+                    "/home/robomaze/.platformio/lib/Adafruit Unified Sensor_ID31",
+                    "/home/robomaze/.platformio/lib/I2Cdevlib-MPU6050_ID107",
+                    "/home/robomaze/.platformio/lib/I2Cdevlib-Core_ID11",
                     "/home/robomaze/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
                     "/home/robomaze/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/config",
                     "/home/robomaze/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/app_trace",
