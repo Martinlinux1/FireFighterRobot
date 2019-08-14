@@ -2,11 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="44ce52b9-57ff-4517-90f1-865a30d27201" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../../FireFighterSensorInterface/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../FireFighterSensorInterface/src/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cameraReader.py" beforeDir="false" afterPath="$PROJECT_DIR$/cameraReader.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/motorController.py" beforeDir="false" afterPath="$PROJECT_DIR$/motorController.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pyusb2fir/usb2fir.py" beforeDir="false" afterPath="$PROJECT_DIR$/pyusb2fir/usb2fir.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -19,10 +17,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1290">
-              <caret line="86" column="22" selection-start-line="86" selection-start-column="22" selection-end-line="86" selection-end-column="22" />
+            <state relative-caret-position="377">
+              <caret line="69" column="64" selection-start-line="69" selection-start-column="64" selection-end-line="69" selection-end-column="64" />
               <folding>
-                <element signature="e#13#40#0" expanded="true" />
+                <element signature="e#0#16#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -31,8 +29,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/cameraReader.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1005">
-              <caret line="72" column="75" selection-start-line="72" selection-start-column="75" selection-end-line="72" selection-end-column="75" />
+            <state relative-caret-position="510">
+              <caret line="34" selection-start-line="34" selection-end-line="34" />
             </state>
           </provider>
         </entry>
@@ -45,7 +43,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/motorController.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1605">
+            <state relative-caret-position="1590">
               <caret line="107" column="64" selection-start-line="107" selection-start-column="64" selection-end-line="107" selection-end-column="64" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
@@ -57,7 +55,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/communicationHandler.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1200">
+            <state relative-caret-position="1440">
               <caret line="96" column="73" selection-start-line="96" selection-start-column="73" selection-end-line="96" selection-end-column="73" />
             </state>
           </provider>
@@ -148,6 +146,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/commSpeedTest.py" />
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
@@ -241,7 +240,8 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="76" y="0" width="1844" height="1080" extended-state="6" />
+    <frame x="72" y="0" width="1852" height="1084" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.24986272" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -253,8 +253,8 @@
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info active="true" anchor="bottom" id="Version Control" order="7" visible="true" weight="0.32983193" />
-      <window_info anchor="bottom" id="Terminal" order="8" weight="0.32878152" />
+      <window_info anchor="bottom" id="Version Control" order="7" weight="0.32983193" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="8" visible="true" weight="0.32878152" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
       <window_info anchor="bottom" id="Python Console" order="10" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
@@ -334,29 +334,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1290">
-          <caret line="86" column="22" selection-start-line="86" selection-start-column="22" selection-end-line="86" selection-end-column="22" />
-          <folding>
-            <element signature="e#13#40#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cameraReader.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1005">
-          <caret line="72" column="75" selection-start-line="72" selection-start-column="75" selection-end-line="72" selection-end-column="75" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/MathUtils.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/motorController.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1605">
+        <state relative-caret-position="1590">
           <caret line="107" column="64" selection-start-line="107" selection-start-column="64" selection-end-line="107" selection-end-column="64" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
@@ -366,7 +349,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/communicationHandler.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1200">
+        <state relative-caret-position="1440">
           <caret line="96" column="73" selection-start-line="96" selection-start-column="73" selection-end-line="96" selection-end-column="73" />
         </state>
       </provider>
@@ -377,6 +360,23 @@
           <caret line="5" column="49" selection-start-line="5" selection-start-column="49" selection-end-line="5" selection-end-column="49" />
           <folding>
             <element signature="e#0#27#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cameraReader.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="510">
+          <caret line="34" selection-start-line="34" selection-end-line="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="377">
+          <caret line="69" column="64" selection-start-line="69" selection-start-column="64" selection-end-line="69" selection-end-column="64" />
+          <folding>
+            <element signature="e#0#16#0" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -1,5 +1,4 @@
 import threading
-import serial
 from time import sleep
 
 import RPi.GPIO as GPIO
@@ -8,8 +7,6 @@ from gpiozero import Servo
 from pyusb2fir import USB2FIR
 from cameraReader import CameraReader
 
-import motorController
-import communicationHandler
 from MathUtils import MathUtils
 
 
@@ -18,11 +15,6 @@ def camera_fetcher():
     while getattr(t, "do_run", True):
         x = cam.read_camera()
 
-
-serialPort = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
-
-commHandler = communicationHandler.CommunicationHandler(serialPort)
-motors = motorController.MotorHandler(commHandler)
 
 fanPin = 4
 
@@ -50,7 +42,7 @@ t.start()
 print("camera testing", end="")
 while cam.read_camera()[0] == 0:
     print(".", end="")
-    sleep(0.5)
+    sleep(1)
 
 print("\nCamera connected.")
 sleep(5)
@@ -75,7 +67,7 @@ while True:
 
         print("Robot turning: ", max_fire_angle)
 
-        servo_turn = MathUtils.valmap(max_fire_angle[1], -36, 36, -1, 1)
+        servo_turn = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
 
         servo.value = servo_turn
         GPIO.output(fanPin, GPIO.LOW)
