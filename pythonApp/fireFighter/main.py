@@ -1,7 +1,22 @@
-import communicationHandler
+import threading
 import serial
-import motorController
 from time import sleep
+
+import RPi.GPIO as GPIO
+from gpiozero import Servo
+
+from pyusb2fir import USB2FIR
+from cameraReader import CameraReader
+
+import motorController
+import communicationHandler
+from MathUtils import MathUtils
+
+
+def camera_fetcher():
+    t = threading.currentThread()
+    while getattr(t, "do_run", True):
+        x = cam.read_camera()
 
 
 serialPort = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
@@ -9,30 +24,62 @@ serialPort = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
 commHandler = communicationHandler.CommunicationHandler(serialPort)
 motors = motorController.MotorHandler(commHandler)
 
-baseSpeed = 150
-blackThreshold = 500
+fanPin = 4
 
+servo = Servo(14)
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(fanPin, GPIO.OUT)
+GPIO.output(fanPin, GPIO.HIGH)
+
+thermal_camera = USB2FIR()
+# serialPort = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
+t = threading.Thread(target=camera_fetcher)
+t.daemon = True
+
+cam = CameraReader(thermal_camera)
+# commHandler = communicationHandler.CommunicationHandler(serialPort)
+# motors = motorController.MotorHandler(commHandler)
+
+baseSpeed = 150
+
+t.start()
+
+
+print("camera testing", end="")
+while cam.read_camera()[0] == 0:
+    print(".", end="")
+    sleep(0.5)
+
+print("\nCamera connected.")
 sleep(5)
+print("Test completed.")
 
 while True:
-    light_sensors_data = commHandler.get_light_sensors_data()
+    fire_coordinates = cam.is_fire(40)
+    if fire_coordinates[0]:
+        print("Fire on: ", fire_coordinates)
 
-    i = 0
-    for sensor_data in light_sensors_data:
-        if sensor_data > blackThreshold:
-            if i <= 1:
-                motors.backward(baseSpeed)
-                sleep(0.1)
-                motors.slide(90, baseSpeed)
-            elif i == 2:
-                motors.slide(-45, baseSpeed)
-                motors.slide(90, baseSpeed)
-            elif i <= 4:
-                motors.slide(90, baseSpeed)
-                motors.slide(45, baseSpeed)
-            elif i <= 6:
-                motors.slide(-45, baseSpeed)
-                motors.forward(baseSpeed)
-            elif i == 7:
-                motors.slide(-135, baseSpeed)
-                motors.backward(baseSpeed)
+        all_fire_angles = cam.coordinates_to_angle(fire_coordinates[1])
+
+        print("Robot needs to turn: ", all_fire_angles)
+
+        max_val = [0, 0, 0]
+        for i in fire_coordinates[1]:
+            if i[2] > max_val[2]:
+                max_val = i
+
+        print("Fire closest to robot: ", max_val)
+        max_fire_angle = CameraReader.coordinates_to_angle(fire_coordinates)
+
+        print("Robot turning: ", max_fire_angle)
+
+        servo_turn = MathUtils.valmap(max_fire_angle[1], -36, 36, -1, 1)
+
+        servo.value = servo_turn
+        GPIO.output(fanPin, GPIO.LOW)
+        sleep(5)
+        GPIO.output(fanPin, GPIO.HIGH)
+
+    sleep(0.5)

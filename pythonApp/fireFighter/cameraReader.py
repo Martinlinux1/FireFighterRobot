@@ -24,8 +24,18 @@ class CameraReader:
     def is_fire(self, threshold):
         fire_positions = []
         for i in range(768):
+<<<<<<< HEAD
             no_fire_pixels_around = self._temperatures[i - 1] < threshold and self._temperatures[i - 32] < threshold and \
                                     self._temperatures[i - 33] < threshold
+=======
+            if i == 0:
+                no_fire_pixels_around = True
+            elif i < 32:
+                no_fire_pixels_around = self._temperatures[i - 1] < threshold
+            else:
+                no_fire_pixels_around = self._temperatures[i - 1] < threshold and self._temperatures[i - 32] < \
+                                        threshold and self._temperatures[i - 33] < threshold
+>>>>>>> 5473e33
 
             if self._temperatures[i] >= threshold and no_fire_pixels_around:
                 print(i)
@@ -58,9 +68,9 @@ class CameraReader:
 
             return fire_angles
         else:
-            angle_horizontal = fire_coordinates[0] * (120 / 32) - 120 / 2
+            angle_horizontal = fire_coordinates[1][0][0] * (120 / 32) - 120 / 2
 
-            angle_vertical = fire_coordinates[1] * (75 / 24) - 15
+            angle_vertical = fire_coordinates[1][0][1] * (75 / 24) - 75 / 2
 
             fire_angles.append(angle_horizontal)
             fire_angles.append(angle_vertical)
