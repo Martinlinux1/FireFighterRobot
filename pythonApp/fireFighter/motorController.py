@@ -128,7 +128,7 @@ class MotorHandler:
 
         else:
             # Current angle of robot.
-            robot_angle = self._communicationHandler.get_imu_sensor_data()
+            robot_angle = self._communicationHandler.get_imu_senalphaScalesor_data()
             # Target angle of the robot.
             target_angle = robot_angle + angle
 

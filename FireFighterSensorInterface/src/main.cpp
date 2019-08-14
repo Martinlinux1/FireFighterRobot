@@ -83,15 +83,27 @@ void loop() {
 
       // If request's type is light sensor.
       if (messageType == TYPE_LIGHT_SENSOR) {
-        int sensorIndex = data.toInt();
-        // Read the light sensor.
-        int lightSensorReading = lightSensors[sensorIndex].read();
+        if (data.length() > 0) {
+          int sensorIndex = data.toInt();
+          // Read the light sensor.
+          int lightSensorReading = lightSensors[sensorIndex].read();
 
-        // Form the response
-        response = String(sensorIndex) + "," + String(lightSensorReading);
-        
-        // Encode the response.
-        responseEncoded = commHandler.encode(TYPE_LIGHT_SENSOR, response);
+          // Form the response
+          response = String(sensorIndex) + "," + String(lightSensorReading);
+          
+          // Encode the response.
+          responseEncoded = commHandler.encode(TYPE_LIGHT_SENSOR, response);
+        }
+
+        else {
+          for (int i = 0; i < 8; i++) {
+            int reading = lightSensors[i].read();
+            response += String(reading) + ',';
+          }
+
+          response.remove(response.length() - 1);
+          responseEncoded = commHandler.encode(TYPE_LIGHT_SENSOR, response);
+        }
       }
 
       // If the request's type is distance sensor.
