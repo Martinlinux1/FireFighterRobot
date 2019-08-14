@@ -85,6 +85,7 @@ void setup() {
                     1,              /* priority of the task */
                     &readIMUSensor, /* Task handle to keep track of created task */
                     0);             /* pin task to core 0 */
+  Serial.println(xPortGetCoreID());
 }
 
 // Loop function.
@@ -100,8 +101,8 @@ void loop() {
     int messageType;
     String data;
     // Decode the request.
+    
     bool isValid = commHandler.decode(message, &messageType, &data);
-
     // If the request is valid.
     if (isValid) {
       String response;

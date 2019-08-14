@@ -113,8 +113,6 @@ String CommunicationHandler::readMessage() {
       reading = Serial.read();
 
       message += reading;
-
-      delay(3);
     }
     
     // Return the message.
