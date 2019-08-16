@@ -1,11 +1,12 @@
 import errors
+import communicationHandler
 import MathUtils
 
 
 class MotorController:
     """Handles 4 motors with mecanum wheels motion."""
     def __init__(self, communication_handler):
-        self._communicationHandler = communication_handler
+        self._communicationHandler: communicationHandler.CommunicationHandler = communication_handler
         self._mathUtils = MathUtils.MathUtils()
 
     """Moves the robot forward"""
@@ -102,37 +103,33 @@ class MotorController:
         # Invalid arguments.
         if angle > 180.0 or angle < -180.0 or speed > 255.0:
             raise errors.InvalidArgumentException
-
         else:
-            # Current angle of robot.
             robot_angle = self._communicationHandler.get_imu_sensor_data()
-            print(robot_angle)
-            # Target angle of the robot.
             target_angle = robot_angle + angle
-            print(target_angle)
+            target_angle = target_angle % 360
 
-            # If desired turn direction is right -> angle > 0.
-            if target_angle > robot_angle:
-                # Turn the robot until it's current angle is target angle.
-                while self._communicationHandler.get_imu_sensor_data() < target_angle - 5:
-                    print(self._communicationHandler.get_imu_sensor_data())
+            if target_angle < 0:
+                target_angle = target_angle + 360
+
+            while True:
+                robot_angle = self._communicationHandler.get_imu_sensor_data()
+
+                diff = target_angle - robot_angle
+                direction = 180 - (diff + 360) % 360
+
+                if direction > 0:
                     self._communicationHandler.write_motor('A', 'F', speed)
                     self._communicationHandler.write_motor('B', 'B', speed)
                     self._communicationHandler.write_motor('C', 'F', speed)
                     self._communicationHandler.write_motor('D', 'B', speed)
-                # Stop motors.
-                self.brake()
-
-            # If desired turn direction is left -> angle < 0.
-            elif target_angle < robot_angle:
-                # Turn the robot until it's current angle is target angle.
-                while self._communicationHandler.get_imu_sensor_data() > target_angle - 5:
+                else:
                     self._communicationHandler.write_motor('A', 'B', speed)
                     self._communicationHandler.write_motor('B', 'F', speed)
                     self._communicationHandler.write_motor('C', 'B', speed)
-                    self._communicationHandler.write_motor('D', 'F', speed)
-                # stop motors.
-                self.brake()
+
+                if abs(diff) < 5:
+                    self.brake()
+                    return
 
     """Stops all motors."""
     def brake(self):

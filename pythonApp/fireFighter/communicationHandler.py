@@ -13,6 +13,8 @@ class CommunicationHandler:
         self._motor = 'M'
         self._echo = 'E'
 
+        self._imuReset = 'R'
+
         self._messageStart = '<'
         self._messageEnd = '>'
 
@@ -81,7 +83,12 @@ class CommunicationHandler:
         if response[1] == self._imuSensor:
             data = response[response.find('{') + 1:response.find('}', 3)]
 
-            return float(data)
+            angle = float(data)
+
+            if angle < 0:
+                return 2 * 180 + angle
+            else:
+                return angle
         # Invalid response.
         else:
             raise errors.InvalidMessageException
