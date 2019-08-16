@@ -41,6 +41,11 @@ bool CommunicationHandler::decode(String message, int *messageType, String *data
       *messageType = TYPE_MOTOR;
     }
 
+    else if (messageCharArr[i] == CommunicationHandler::echo) {
+      *data = CommunicationHandler::getDataFromMessage(message);
+      *messageType = TYPE_ECHO
+    }
+
     // Invalid message.
     else {
       return false;
@@ -82,6 +87,10 @@ String CommunicationHandler::encode(int messageType, String data) {
     message += CommunicationHandler::motor;
   }
 
+  else if (messageType == TYPE_ECHO) {
+    message += CommunicationHandler::echo;
+  }
+
   // Invalid message type.
   else {
     return "";
@@ -113,8 +122,6 @@ String CommunicationHandler::readMessage() {
       reading = Serial.read();
 
       message += reading;
-
-      delay(3);
     }
     
     // Return the message.

@@ -1,15 +1,82 @@
-import cv2
-from haarCascadeFireDetection import HaarCascadeFireDetection
+from threading import Thread
+
+import serial
+import threading
+from time import sleep
+
+from gpiozero import DigitalOutputDevice
+from gpiozero import Servo
+
+from pyusb2fir import USB2FIR
+from cameraReader import CameraReader
+
+import communicationHandler
+import motorController
+from MathUtils import MathUtils
 
 
-fire_detector = HaarCascadeFireDetection('fire_detection.xml')
-img = cv2.imread('fire_2.jpg')
-fires = fire_detector.detect_fire(img)
+# Camera reader
+def camera_fetcher():
+    thread = threading.currentThread()
+    while getattr(thread, "do_run", True):
+        cam.read_camera()
 
-for (x, y, w, h) in fires:
-    cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
-    roi_color = img[y:y + h, x:x + w]
 
-cv2.imshow('img', img)
-cv2.waitKey()
-cv2.destroyAllWindows()
+fanPin = 4
+
+fan = DigitalOutputDevice(fanPin, False)
+servo = Servo(14)
+
+thermal_camera = USB2FIR()
+serialPort = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.05)
+t = threading.Thread(target=camera_fetcher)
+t.daemon = True
+
+cam = CameraReader(thermal_camera)
+commHandler = communicationHandler.CommunicationHandler(serialPort)
+motors = motorController.MotorController(commHandler)
+
+baseSpeed = 150
+
+t.start()
+
+
+print('camera testing', end='')
+
+if thermal_camera.echo_test(44) != 44:
+    while True:
+        pass
+print(thermal_camera.echo_test(5))
+print("\nCamera connected.")
+sleep(5)
+print("Test completed.")
+print(cam.read_camera())
+while True:
+    fire_coordinates = cam.is_fire(40)
+    if fire_coordinates[0]:
+        print("Fire on: ", fire_coordinates)
+
+        all_fire_angles = cam.coordinates_to_angle(fire_coordinates[1])
+
+        print("Robot needs to turn: ", all_fire_angles)
+
+        max_val = [0, 0, 0]
+        for i in fire_coordinates[1]:
+            if i[2] > max_val[2]:
+                max_val = i
+
+        print("Fire closest to robot: ", max_val)
+        max_fire_angle = CameraReader.coordinates_to_angle(fire_coordinates)
+
+        print("Robot turning: ", max_fire_angle)
+
+        motors.slide(max_fire_angle[0] * -1, baseSpeed)
+
+        if max_val[2] > 100:
+            motors.brake()
+            servo_angle = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
+
+            servo.value = servo_angle
+            fan.on()
+            sleep(5)
+            fan.off()

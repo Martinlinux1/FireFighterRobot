@@ -16,7 +16,7 @@
 
 
 
-int motorPins[8] = {19, 18, 5, 17, 16, 4, 2, 0};
+int motorPins[8] = {19, 18, 17, 5, 2, 0, 4, 16};
 int lightSensorPins[8] = {36, 39, 34, 35, 32, 33, 25, 26};
 int motorChannels[4][2] = {
   {0, 1},
@@ -85,6 +85,7 @@ void setup() {
                     1,              /* priority of the task */
                     &readIMUSensor, /* Task handle to keep track of created task */
                     0);             /* pin task to core 0 */
+  Serial.println(xPortGetCoreID());
 }
 
 // Loop function.
@@ -100,8 +101,8 @@ void loop() {
     int messageType;
     String data;
     // Decode the request.
+    
     bool isValid = commHandler.decode(message, &messageType, &data);
-
     // If the request is valid.
     if (isValid) {
       String response;
@@ -109,15 +110,27 @@ void loop() {
 
       // If request's type is light sensor.
       if (messageType == TYPE_LIGHT_SENSOR) {
-        int sensorIndex = data.toInt();
-        // Read the light sensor.
-        int lightSensorReading = lightSensors[sensorIndex].read();
+        if (data.length() > 0) {
+          int sensorIndex = data.toInt();
+          // Read the light sensor.
+          int lightSensorReading = lightSensors[sensorIndex].read();
 
-        // Form the response
-        response = String(sensorIndex) + "," + String(lightSensorReading);
-        
-        // Encode the response.
-        responseEncoded = commHandler.encode(TYPE_LIGHT_SENSOR, response);
+          // Form the response
+          response = String(sensorIndex) + "," + String(lightSensorReading);
+          
+          // Encode the response.
+          responseEncoded = commHandler.encode(TYPE_LIGHT_SENSOR, response);
+        }
+
+        else {
+          for (int i = 0; i < 8; i++) {
+            int reading = lightSensors[i].read();
+            response += String(reading) + ',';
+          }
+
+          response.remove(response.length() - 1);
+          responseEncoded = commHandler.encode(TYPE_LIGHT_SENSOR, response);
+        }
       }
 
       // If the request's type is distance sensor.
@@ -184,6 +197,11 @@ void loop() {
         
         // Encode the response.
         responseEncoded = commHandler.encode(TYPE_MOTOR, response);
+      }
+
+      else if (messageType == TYPE_ECHO) {
+        response = "OK";
+        responseEncoded = commHandler.encode(TYPE_ECHO, message);
       }
 
       // Invalid request.
