@@ -1,5 +1,3 @@
-from threading import Thread
-
 import serial
 import threading
 from time import sleep
@@ -36,7 +34,7 @@ cam = CameraReader(thermal_camera)
 commHandler = communicationHandler.CommunicationHandler(serialPort)
 motors = motorController.MotorController(commHandler)
 
-baseSpeed = 150
+baseSpeed = 100
 
 t.start()
 
@@ -53,6 +51,7 @@ print("Test completed.")
 print(cam.read_camera())
 while True:
     fire_coordinates = cam.is_fire(40)
+    print("v")
     if fire_coordinates[0]:
         print("Fire on: ", fire_coordinates)
 
@@ -70,7 +69,7 @@ while True:
 
         print("Robot turning: ", max_fire_angle)
 
-        motors.slide(max_fire_angle[0] * -1, baseSpeed)
+        motors.turn(max_fire_angle[0] * -1, baseSpeed)
 
         if max_val[2] > 100:
             motors.brake()

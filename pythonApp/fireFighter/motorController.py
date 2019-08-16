@@ -105,14 +105,17 @@ class MotorController:
 
         else:
             # Current angle of robot.
-            robot_angle = self._communicationHandler.get_imu_senalphaScalesor_data()
+            robot_angle = self._communicationHandler.get_imu_sensor_data()
+            print(robot_angle)
             # Target angle of the robot.
             target_angle = robot_angle + angle
+            print(target_angle)
 
             # If desired turn direction is right -> angle > 0.
             if target_angle > robot_angle:
                 # Turn the robot until it's current angle is target angle.
                 while self._communicationHandler.get_imu_sensor_data() < target_angle - 5:
+                    print(self._communicationHandler.get_imu_sensor_data())
                     self._communicationHandler.write_motor('A', 'F', speed)
                     self._communicationHandler.write_motor('B', 'B', speed)
                     self._communicationHandler.write_motor('C', 'F', speed)
@@ -130,19 +133,6 @@ class MotorController:
                     self._communicationHandler.write_motor('D', 'F', speed)
                 # stop motors.
                 self.brake()
-
-    """Turns the robot until externally stopped."""
-    def turn(self, direction: str, speed: int):
-        if direction == 'L':
-            self._communicationHandler.write_motor('A', 'B', speed)
-            self._communicationHandler.write_motor('B', 'F', speed)
-            self._communicationHandler.write_motor('C', 'B', speed)
-            self._communicationHandler.write_motor('D', 'F', speed)
-        elif direction == 'R':
-            self._communicationHandler.write_motor('A', 'F', speed)
-            self._communicationHandler.write_motor('B', 'B', speed)
-            self._communicationHandler.write_motor('C', 'F', speed)
-            self._communicationHandler.write_motor('D', 'B', speed)
 
     """Stops all motors."""
     def brake(self):

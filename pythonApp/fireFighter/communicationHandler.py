@@ -81,7 +81,7 @@ class CommunicationHandler:
         if response[1] == self._imuSensor:
             data = response[response.find('{') + 1:response.find('}', 3)]
 
-            return int(data)
+            return float(data)
         # Invalid response.
         else:
             raise errors.InvalidMessageException
