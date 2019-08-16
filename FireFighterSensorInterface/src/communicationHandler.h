@@ -9,14 +9,19 @@
  *      D - distance sensor reading
  *      I - IMU sensor reading(not implemented yet)
  *      M - motor writing
+ *      E - echo - test connection
  * 
  *    { - data block start character
  *    data - data to send
  *    } - data block end character
  *    > - message end character
  * 
+ * Chancelog:
+ * 1.0 - Created communication protocol for sening/receiving data from Raspberry Pi, 
+ *       motors, light and IMU sensors are supported
+ * 1.1 - Added connection testing - echo
  * Creator: Martinlinux
- * Version: 1.0
+ * Version: 1.1
  */
 
 #include <Arduino.h>
@@ -24,6 +29,7 @@
 #define TYPE_DISTANCE_SENSOR 1
 #define TYPE_MOTOR 2
 #define TYPE_IMU 3
+#define TYPE_ECHO 4
 
 
 class CommunicationHandler {
@@ -48,6 +54,7 @@ class CommunicationHandler {
     const char distanceSensor = 'D';
     const char imuSensor = 'I';
     const char motor = 'M';
+    const char echo = 'E';
     const char messageStart = '<';
     const char messageEnd = '>';
     const char dataStart = '{';

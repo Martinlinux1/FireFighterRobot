@@ -127,9 +127,9 @@ class MLXCommonParameters:
         
         alphaRef = eepromdata[0x21]
         alphaScale = (eepromdata[0x20] >> 12) + 30
-        accColumnScale = (eepromdata[0x20] & 0x00F0) >> 4;
-        accRowScale = (eepromdata[0x20] & 0x0F00) >> 8;
-        accRemScale = eepromdata[0x20] & 0x000F;
+        accColumnScale = (eepromdata[0x20] & 0x00F0) >> 4
+        accRowScale = (eepromdata[0x20] & 0x0F00) >> 8
+        accRemScale = eepromdata[0x20] & 0x000F
 
         accRow = []
         for i in range(24):
@@ -145,7 +145,7 @@ class MLXCommonParameters:
                 pixelid = i * 32 + j
                 a = uint6_to_int6((eepromdata[0x40 + pixelid] & 0x03F0) >> 4)
                 a = alphaRef + (accRow[i] << accRowScale) + (accColumn[j] << accColumnScale) + a * (1 << accRemScale)
-                a = (a + 0.0) / (int(1) << alphaScale)
+                a = (a + 0.0) / (int(1) << 34)
                 self.alpha.append(a)
 
 
@@ -215,7 +215,7 @@ class MLXCommonParameters:
 
         alphaScale = ((eepromdata[0x20] & 0xF000) >> 12) + 27
         self.cpAlpha = [0.0, 0.0]
-        self.cpAlpha[0] = (uint10_to_int10(eepromdata[0x39] & 0x03FF) + 0.0) / (1 << alphaScale)
+        self.cpAlpha[0] = (uint10_to_int10(eepromdata[0x39] & 0x03FF) + 0.0) / (1 << 34)
         self.cpAlpha[1] = uint6_to_int6((eepromdata[0x39] & 0xFC00) >> 10) + 0.0
         self.cpAlpha[1] = (1 + self.cpAlpha[1] / 128) * self.cpAlpha[0]
 
@@ -365,7 +365,7 @@ class USB2FIR(object):
         ta = (ptatArt / (1 + self.commonParameters.KvPTAT * (vdd - 3.3)) - self.commonParameters.vPTAT25)
         ta = ta / self.commonParameters.KtPTAT + 25
 
-        tr = ta - 8;
+        tr = ta - 8
 
         ta4 = np.power((ta + 273.15), 4)
         tr4 = np.power((tr + 273.15), 4)        
@@ -381,6 +381,7 @@ class USB2FIR(object):
             data = self.bulkread()
             pixeldata = np.frombuffer(data, '>u2')
             for irData in pixeldata:
+                # print(irData)
                 irData = uint16_to_int16(irData) + 0.0                
                 irData = irData * gain
                 irData = irData - self.commonParameters.offset[pixelidx] * (1 + self.commonParameters.kta[pixelidx] * (ta - 25)) * (1 + self.commonParameters.kv[pixelidx] * (vdd - 3.3))

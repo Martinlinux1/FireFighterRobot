@@ -11,6 +11,7 @@ class CommunicationHandler:
         self._distanceSensor = 'D'
         self._imuSensor = 'I'
         self._motor = 'M'
+        self._echo = 'E'
 
         self._messageStart = '<'
         self._messageEnd = '>'
@@ -19,7 +20,7 @@ class CommunicationHandler:
         self._dataEnd = '}'
 
     """Sends message via serial link."""
-    def write_message(self, message):
+    def write_message(self, message: str):
         # Write the message.
         self._serial.write(bytearray(message + '\n', 'ascii'))
         # Wait for response.
@@ -33,7 +34,7 @@ class CommunicationHandler:
             raise errors.InvalidMessageException
 
     """Reads data from light sensor."""
-    def get_light_sensor_data(self, sensor):
+    def get_light_sensor_data(self, sensor: int):
         # Construct the request.
         message = self._messageStart + self._lightSensor + self._dataStart + str(sensor) + self._dataEnd + \
                   self._messageEnd
@@ -51,7 +52,7 @@ class CommunicationHandler:
             raise errors.InvalidMessageException
 
     """Reads data from distance sensor."""
-    def get_distance_sensor_data(self, sensor):
+    def get_distance_sensor_data(self, sensor: int):
         # Construct the request.
         message = self._messageStart + self._distanceSensor + self._dataStart + str(sensor) + self._dataEnd + \
                   self._messageEnd
@@ -80,7 +81,7 @@ class CommunicationHandler:
         if response[1] == self._imuSensor:
             data = response[response.find('{') + 1:response.find('}', 3)]
 
-            return int(data)
+            return float(data)
         # Invalid response.
         else:
             raise errors.InvalidMessageException
@@ -100,3 +101,13 @@ class CommunicationHandler:
         # Invalid response.
         else:
             raise errors.InvalidMessageException
+
+    def echo(self):
+        message = self._messageStart + self._imuSensor + self._dataStart + self._dataEnd + self._messageEnd
+
+        response = self.write_message(message)
+
+        if response.find('OK'):
+            return True
+        else:
+            return False
