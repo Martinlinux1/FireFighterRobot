@@ -3,6 +3,10 @@ import math
 
 class CameraReader:
     def __init__(self, thermal_camera):
+        """
+
+        :type thermal_camera: USB2FIR
+        """
         self._thermal_camera = thermal_camera
         self._temperatures = self._thermal_camera.initializeFrame()
 
@@ -21,10 +25,10 @@ class CameraReader:
 
         return self._temperatures
 
-    def is_fire(self, threshold):
+    def is_fire(self, threshold: int):
         fire_positions = []
         for i in range(768):
-
+            # print(self._temperatures[i])
             if i == 0:
                 no_fire_pixels_around = True
             elif i < 32:
@@ -56,7 +60,7 @@ class CameraReader:
 
         if isinstance(fire_coordinates[0], list):
             for i in fire_coordinates:
-                angle_horizontal = i[0] * (120 / 32) - 120 / 2
+                angle_horizontal = (i[0] * (120 / 32) - 120 / 2)
 
                 angle_vertical = i[1] * (75 / 24) - 15
 

@@ -7,7 +7,7 @@ serialLink = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.05)
 
 commHandler = communicationHandler.CommunicationHandler(serialLink)
 
-motors = motorController.MotorHandler(commHandler)
+motors = motorController.MotorController(commHandler)
 
 while True:
     commHandler.write_motor('A', 'F', 255)

@@ -365,7 +365,7 @@ class USB2FIR(object):
         ta = (ptatArt / (1 + self.commonParameters.KvPTAT * (vdd - 3.3)) - self.commonParameters.vPTAT25)
         ta = ta / self.commonParameters.KtPTAT + 25
 
-        tr = ta - 8;
+        tr = ta - 8
 
         ta4 = np.power((ta + 273.15), 4)
         tr4 = np.power((tr + 273.15), 4)        
@@ -381,6 +381,7 @@ class USB2FIR(object):
             data = self.bulkread()
             pixeldata = np.frombuffer(data, '>u2')
             for irData in pixeldata:
+                # print(irData)
                 irData = uint16_to_int16(irData) + 0.0                
                 irData = irData * gain
                 irData = irData - self.commonParameters.offset[pixelidx] * (1 + self.commonParameters.kta[pixelidx] * (ta - 25)) * (1 + self.commonParameters.kv[pixelidx] * (vdd - 3.3))

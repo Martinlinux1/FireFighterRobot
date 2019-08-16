@@ -1,53 +1,56 @@
+from threading import Thread
+
+import serial
 import threading
 from time import sleep
 
-import RPi.GPIO as GPIO
+from gpiozero import DigitalOutputDevice
 from gpiozero import Servo
 
 from pyusb2fir import USB2FIR
 from cameraReader import CameraReader
 
+import communicationHandler
+import motorController
 from MathUtils import MathUtils
 
 
+# Camera reader
 def camera_fetcher():
-    t = threading.currentThread()
-    while getattr(t, "do_run", True):
-        x = cam.read_camera()
+    thread = threading.currentThread()
+    while getattr(thread, "do_run", True):
+        cam.read_camera()
 
 
 fanPin = 4
 
+fan = DigitalOutputDevice(fanPin, False)
 servo = Servo(14)
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-GPIO.setup(fanPin, GPIO.OUT)
-GPIO.output(fanPin, GPIO.HIGH)
-
 thermal_camera = USB2FIR()
-# serialPort = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
+serialPort = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.05)
 t = threading.Thread(target=camera_fetcher)
 t.daemon = True
 
 cam = CameraReader(thermal_camera)
-# commHandler = communicationHandler.CommunicationHandler(serialPort)
-# motors = motorController.MotorHandler(commHandler)
+commHandler = communicationHandler.CommunicationHandler(serialPort)
+motors = motorController.MotorController(commHandler)
 
 baseSpeed = 150
 
 t.start()
 
 
-print("camera testing", end="")
-while cam.read_camera()[0] == 0:
-    print(".", end="")
-    sleep(1)
+print('camera testing', end='')
 
+if thermal_camera.echo_test(44) != 44:
+    while True:
+        pass
+print(thermal_camera.echo_test(5))
 print("\nCamera connected.")
 sleep(5)
 print("Test completed.")
-
+print(cam.read_camera())
 while True:
     fire_coordinates = cam.is_fire(40)
     if fire_coordinates[0]:
@@ -67,11 +70,13 @@ while True:
 
         print("Robot turning: ", max_fire_angle)
 
-        servo_turn = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
+        motors.slide(max_fire_angle[0] * -1, baseSpeed)
 
-        servo.value = servo_turn
-        GPIO.output(fanPin, GPIO.LOW)
-        sleep(5)
-        GPIO.output(fanPin, GPIO.HIGH)
+        if max_val[2] > 100:
+            motors.brake()
+            servo_angle = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
 
-    sleep(0.5)
+            servo.value = servo_angle
+            fan.on()
+            sleep(5)
+            fan.off()

@@ -41,6 +41,11 @@ bool CommunicationHandler::decode(String message, int *messageType, String *data
       *messageType = TYPE_MOTOR;
     }
 
+    else if (messageCharArr[i] == CommunicationHandler::echo) {
+      *data = CommunicationHandler::getDataFromMessage(message);
+      *messageType = TYPE_ECHO
+    }
+
     // Invalid message.
     else {
       return false;
@@ -80,6 +85,10 @@ String CommunicationHandler::encode(int messageType, String data) {
   // If the message type is motor.
   else if (messageType == TYPE_MOTOR) {
     message += CommunicationHandler::motor;
+  }
+
+  else if (messageType == TYPE_ECHO) {
+    message += CommunicationHandler::echo;
   }
 
   // Invalid message type.

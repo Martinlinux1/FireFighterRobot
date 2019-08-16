@@ -199,6 +199,11 @@ void loop() {
         responseEncoded = commHandler.encode(TYPE_MOTOR, response);
       }
 
+      else if (messageType == TYPE_ECHO) {
+        response = "OK";
+        responseEncoded = commHandler.encode(TYPE_ECHO, message);
+      }
+
       // Invalid request.
       else {
         return; 

@@ -2,14 +2,14 @@ import errors
 import MathUtils
 
 
-class MotorHandler:
+class MotorController:
     """Handles 4 motors with mecanum wheels motion."""
     def __init__(self, communication_handler):
         self._communicationHandler = communication_handler
         self._mathUtils = MathUtils.MathUtils()
 
     """Moves the robot forward"""
-    def forward(self, speed):
+    def forward(self, speed: int):
         # Invalid argument.
         if speed > 255:
             raise errors.InvalidArgumentException
@@ -20,7 +20,7 @@ class MotorHandler:
         self._communicationHandler.write_motor('D', 'F', speed)
 
     """Moves the robot backward."""
-    def backward(self, speed):
+    def backward(self, speed: int):
         # Invalid argument.
         if speed > 255:
             raise errors.InvalidArgumentException
@@ -30,20 +30,20 @@ class MotorHandler:
         self._communicationHandler.write_motor('C', 'B', speed)
         self._communicationHandler.write_motor('D', 'B', speed)
 
-    def left(self, speed):
+    def left(self, speed: int):
         self._communicationHandler.write_motor('A', 'B', speed)
         self._communicationHandler.write_motor('B', 'F', speed)
         self._communicationHandler.write_motor('C', 'F', speed)
         self._communicationHandler.write_motor('D', 'B', speed)
 
-    def right(self, speed):
+    def right(self, speed: int):
         self._communicationHandler.write_motor('A', 'F', speed)
         self._communicationHandler.write_motor('B', 'B', speed)
         self._communicationHandler.write_motor('C', 'B', speed)
         self._communicationHandler.write_motor('D', 'F', speed)
 
     """Slides the robot to a given angle."""
-    def slide(self, angle, speed):
+    def slide(self, angle: float, speed: int):
         if angle >= 0:
             if angle <= 45:
                 bc_speed = int(self._mathUtils.valmap(angle, 45, 0, 0, speed))
@@ -98,9 +98,9 @@ class MotorHandler:
                 self._communicationHandler.write_motor('D', 'B', ad_speed)
 
     """Turns the robot to a given angle"""
-    def turn(self, angle, speed):
+    def turn(self, angle: float, speed: int):
         # Invalid arguments.
-        if angle > 180 or angle < -180 or speed > 255:
+        if angle > 180.0 or angle < -180.0 or speed > 255.0:
             raise errors.InvalidArgumentException
 
         else:
@@ -132,7 +132,7 @@ class MotorHandler:
                 self.brake()
 
     """Turns the robot until externally stopped."""
-    def turn(self, direction, speed):
+    def turn(self, direction: str, speed: int):
         if direction == 'L':
             self._communicationHandler.write_motor('A', 'B', speed)
             self._communicationHandler.write_motor('B', 'F', speed)
