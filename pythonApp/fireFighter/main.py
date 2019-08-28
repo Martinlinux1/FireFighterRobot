@@ -20,6 +20,7 @@ def camera_fetcher():
         cam.read_camera()
 
 
+turned = False
 fanPin = 4
 
 fan = DigitalOutputDevice(fanPin, False)
@@ -49,6 +50,7 @@ print("\nCamera connected.")
 sleep(5)
 print("Test completed.")
 print(cam.read_camera())
+
 while True:
     fire_coordinates = cam.is_fire(40)
     print("v")
@@ -69,7 +71,14 @@ while True:
 
         print("Robot turning: ", max_fire_angle)
 
-        motors.turn(max_fire_angle[0] * -1, baseSpeed)
+        if not turned:
+            motors.turn(max_fire_angle[0] * -1, baseSpeed)
+            turned = True
+        else:
+            if max_fire_angle in range(-10, 10):
+                motors.slide(max_fire_angle[0] * -1, baseSpeed)
+            else:
+                motors.forward(baseSpeed)
 
         if max_val[2] > 100:
             motors.brake()
@@ -79,3 +88,5 @@ while True:
             fan.on()
             sleep(5)
             fan.off()
+            
+            turned = False

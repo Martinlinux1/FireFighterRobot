@@ -147,11 +147,20 @@ void loop() {
 
       // If the request's type is IMU sensor.
       else if (messageType == TYPE_IMU) {
-        // Form the response.
-        response = String(mpu.getYawAngle());
+        if (data == "R") {
+          mpu.initDMP(220, 76, -20, 2008);
 
-        // Encode the response.
-        responseEncoded = commHandler.encode(TYPE_IMU, response);
+          // Form the response.
+          responseEncoded = message;
+        }
+
+        else {
+          // Form the response.
+          response = String(mpu.getYawAngle());
+
+          // Encode the response.
+          responseEncoded = commHandler.encode(TYPE_IMU, response);
+        }
       }
 
       else if (messageType == TYPE_MOTOR) {

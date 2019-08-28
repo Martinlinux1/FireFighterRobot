@@ -43,7 +43,7 @@ bool CommunicationHandler::decode(String message, int *messageType, String *data
 
     else if (messageCharArr[i] == CommunicationHandler::echo) {
       *data = CommunicationHandler::getDataFromMessage(message);
-      *messageType = TYPE_ECHO
+      *messageType = TYPE_ECHO;
     }
 
     // Invalid message.
