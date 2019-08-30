@@ -45,6 +45,7 @@ print('camera testing', end='')
 if thermal_camera.echo_test(44) != 44:
     while True:
         pass
+
 print(thermal_camera.echo_test(5))
 print("\nCamera connected.")
 sleep(5)
@@ -53,7 +54,6 @@ print(cam.read_camera())
 
 while True:
     fire_coordinates = cam.is_fire(40)
-    print("v")
     if fire_coordinates[0]:
         print("Fire on: ", fire_coordinates)
 
@@ -72,11 +72,11 @@ while True:
         print("Robot turning: ", max_fire_angle)
 
         if not turned:
-            motors.turn(max_fire_angle[0] * -1, baseSpeed)
+            motors.turn(max_fire_angle[0], baseSpeed)
             turned = True
         else:
             if max_fire_angle in range(-10, 10):
-                motors.slide(max_fire_angle[0] * -1, baseSpeed)
+                motors.slide(max_fire_angle[0], baseSpeed)
             else:
                 motors.forward(baseSpeed)
 
