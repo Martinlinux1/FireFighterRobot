@@ -1,6 +1,11 @@
 import serial
 import threading
 from time import sleep
+import numpy as np
+
+import matplotlib
+
+import matplotlib.pyplot as plt
 
 from gpiozero import DigitalOutputDevice
 from gpiozero import Servo
@@ -18,9 +23,26 @@ class CameraFetcher(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
+        frame = thermal_camera.initializeFrame()
+        ir = frame.reshape((24, 32))
+
+        matplotlib.use("GTK3Agg")
+        plt.ion()
+        self._graph = plt.imshow(ir, interpolation='none')
+        plt.colorbar()
+        plt.clim(0, 100)
+        plt.draw()
+        plt.show()
+
     def run(self):
         while self.is_alive():
-            cam.read_camera()
+            ir = cam.read_camera()
+
+            ir = np.reshape(ir, (24, 32))
+            self._graph.set_data(ir)
+            plt.draw()
+            plt.pause(0.00001)
+            print("camera reading successful")
             camera_data_read_event.set()
 
 
@@ -29,17 +51,18 @@ camera_data_read_event = threading.Event()
 turned = False
 fanPin = 4
 
-fan = DigitalOutputDevice(fanPin, False)
-servo = Servo(14)
+# fan = DigitalOutputDevice(fanPin, False)
+# servo = Servo(14)
 
 thermal_camera = USB2FIR()
-serialPort = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.05)
+# serialPort = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.05)
+
 t = CameraFetcher()
 t.daemon = True
 
 cam = CameraReader(thermal_camera)
-commHandler = communicationHandler.CommunicationHandler(serialPort)
-motors = motorController.MotorController(commHandler)
+# commHandler = communicationHandler.CommunicationHandler(serialPort)
+# motors = motorController.MotorController(commHandler)
 
 baseSpeed = 255
 
@@ -79,23 +102,25 @@ while True:
 
         print("Robot turning: ", max_fire_angle)
 
-        if max_fire_angle[0] > 20 or max_fire_angle[0] < -20:
-            if max_fire_angle[0] > 0:
-                motors.turn('L', baseSpeed)
-            else:
-                motors.turn('R', baseSpeed)
-        else:
-            motors.slide(max_fire_angle[0], baseSpeed)
+        # if max_fire_angle[0] > 20 or max_fire_angle[0] < -20:
+        #     if max_fire_angle[0] > 0:
+        #         motors.turn('L', baseSpeed)
+        #     else:
+        #         motors.turn('R', baseSpeed)
+        # else:
+        #     pass
+        #     motors.slide(max_fire_angle[0], baseSpeed)
 
         if max_val[2] > 100:
-            motors.brake()
+            # motors.brake()
             servo_angle = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
 
-            servo.value = servo_angle
-            fan.on()
-            sleep(5)
-            fan.off()
+            # servo.value = servo_angle
+            # fan.on()
+            # sleep(5)
+            # fan.off()
             
             turned = False
     # else:
     #     motors.forward(baseSpeed)
+
