@@ -10,6 +10,7 @@ commHandler = communicationHandler.CommunicationHandler(serialLink)
 motors = motorController.MotorController(commHandler)
 
 while True:
+    # print(commHandler.get_imu_sensor_data())
     motors.turn(45.0, 255)
     sleep(1)
 

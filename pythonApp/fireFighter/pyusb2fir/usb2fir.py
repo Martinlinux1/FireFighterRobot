@@ -145,7 +145,7 @@ class MLXCommonParameters:
                 pixelid = i * 32 + j
                 a = uint6_to_int6((eepromdata[0x40 + pixelid] & 0x03F0) >> 4)
                 a = alphaRef + (accRow[i] << accRowScale) + (accColumn[j] << accColumnScale) + a * (1 << accRemScale)
-                a = (a + 0.0) / (int(1) << 34)
+                a = (a + 0.0) / (int(1) << 37)
                 self.alpha.append(a)
 
 
@@ -214,10 +214,10 @@ class MLXCommonParameters:
         # extract the sensitivity alphaCP
 
         alphaScale = ((eepromdata[0x20] & 0xF000) >> 12) + 27
-        self.cpAlpha = [0.0, 0.0]
-        self.cpAlpha[0] = (uint10_to_int10(eepromdata[0x39] & 0x03FF) + 0.0) / (1 << 34)
-        self.cpAlpha[1] = uint6_to_int6((eepromdata[0x39] & 0xFC00) >> 10) + 0.0
-        self.cpAlpha[1] = (1 + self.cpAlpha[1] / 128) * self.cpAlpha[0]
+        self.cpAlpha = [np.uint64(0.0), np.uint64(0.0)]
+        self.cpAlpha[0]: np.uint64 = (uint10_to_int10(eepromdata[0x39] & 0x03FF) + 0.0) / np.uint64(1 << 34)
+        self.cpAlpha[1]: np.uint64 = uint6_to_int6((eepromdata[0x39] & 0xFC00) >> 10) + 0.0
+        self.cpAlpha[1]: np.uint64 = (1 + self.cpAlpha[1] / 128) * self.cpAlpha[0]
 
 
         # extract offset of the compensation pixel
