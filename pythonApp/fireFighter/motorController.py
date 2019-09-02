@@ -131,6 +131,18 @@ class MotorController:
                     self.brake()
                     return
 
+    def turn(self, direction, speed):
+        if direction == 'L':
+            self._communicationHandler.write_motor('A', 'B', speed)
+            self._communicationHandler.write_motor('B', 'F', speed)
+            self._communicationHandler.write_motor('C', 'B', speed)
+            self._communicationHandler.write_motor('D', 'F', speed)
+        elif direction == 'R':
+            self._communicationHandler.write_motor('A', 'F', speed)
+            self._communicationHandler.write_motor('B', 'B', speed)
+            self._communicationHandler.write_motor('C', 'F', speed)
+            self._communicationHandler.write_motor('D', 'B', speed)
+
     """Stops all motors."""
     def brake(self):
         self._communicationHandler.write_motor('A', 'F', 0)

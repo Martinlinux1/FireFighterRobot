@@ -14,11 +14,17 @@ from MathUtils import MathUtils
 
 
 # Camera reader
-def camera_fetcher():
-    thread = threading.currentThread()
-    while getattr(thread, "do_run", True):
-        cam.read_camera()
+class CameraFetcher(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
 
+    def run(self):
+        while self.is_alive():
+            cam.read_camera()
+            camera_data_read_event.set()
+
+
+camera_data_read_event = threading.Event()
 
 turned = False
 fanPin = 4
@@ -28,14 +34,14 @@ servo = Servo(14)
 
 thermal_camera = USB2FIR()
 serialPort = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.05)
-t = threading.Thread(target=camera_fetcher)
+t = CameraFetcher()
 t.daemon = True
 
 cam = CameraReader(thermal_camera)
 commHandler = communicationHandler.CommunicationHandler(serialPort)
 motors = motorController.MotorController(commHandler)
 
-baseSpeed = 100
+baseSpeed = 255
 
 t.start()
 
@@ -46,14 +52,16 @@ if thermal_camera.echo_test(44) != 44:
     while True:
         pass
 
-print(thermal_camera.echo_test(5))
 print("\nCamera connected.")
 sleep(5)
 print("Test completed.")
 print(cam.read_camera())
 
 while True:
+    camera_data_read_event.wait()
     fire_coordinates = cam.is_fire(40)
+    camera_data_read_event.clear()
+
     if fire_coordinates[0]:
         print("Fire on: ", fire_coordinates)
 
@@ -71,14 +79,13 @@ while True:
 
         print("Robot turning: ", max_fire_angle)
 
-        if not turned:
-            motors.turn(max_fire_angle[0], baseSpeed)
-            turned = True
-        else:
-            if max_fire_angle in range(-10, 10):
-                motors.slide(max_fire_angle[0], baseSpeed)
+        if max_fire_angle[0] > 20 or max_fire_angle[0] < -20:
+            if max_fire_angle[0] > 0:
+                motors.turn('L', baseSpeed)
             else:
-                motors.forward(baseSpeed)
+                motors.turn('R', baseSpeed)
+        else:
+            motors.slide(max_fire_angle[0], baseSpeed)
 
         if max_val[2] > 100:
             motors.brake()
@@ -90,3 +97,5 @@ while True:
             fan.off()
             
             turned = False
+    # else:
+    #     motors.forward(baseSpeed)
