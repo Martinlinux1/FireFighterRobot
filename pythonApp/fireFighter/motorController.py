@@ -131,7 +131,7 @@ class MotorController:
                     self.brake()
                     return
 
-    def turn(self, direction, speed):
+    def turn(self, direction: str, speed: int):
         if direction == 'L':
             self._communicationHandler.write_motor('A', 'B', speed)
             self._communicationHandler.write_motor('B', 'F', speed)

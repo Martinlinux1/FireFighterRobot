@@ -1,3 +1,5 @@
+import random
+
 import serial
 import threading
 from time import sleep
@@ -127,7 +129,45 @@ while True:
                 fan.off()
 
                 turned = False
-
+        else:
+            line = is_line()
+            if line:
+                if 6 in line and 5 in line and 4 in line:                   # Left downer corner.
+                    motors.turn(45, baseSpeed)
+                    motors.forward(baseSpeed)
+                elif 2 in line and 3 in line and 4 in line:                 # Right downer corner.
+                    motors.turn(-45, baseSpeed)
+                elif 0 in line and 7 in line and 6 in line:                 # Left upper corner.
+                    motors.turn(135, baseSpeed)
+                elif 0 in line and 1 in line and 2 in line:                 # Right upper corner.
+                    motors.turn(-135, baseSpeed)
+                elif 6 in line and (7 in line or 5 in line):                # Line on the left.
+                    motors.turn(90, baseSpeed)
+                elif 0 in line and (7 in line or 1 in line):                # Line on the right.
+                    motors.turn(-90, baseSpeed)
+                elif 4 in line and (5 in line or 3 in line):                # Line on the back.
+                    motors.turn(180, baseSpeed)
+                elif 2 in line and (1 in line or 3 in line):                # Line on the front.
+                    motors.turn(180, baseSpeed)
+                else:                                                       # One sensor detected the line.
+                    if 1 in line:
+                        motors.backward(baseSpeed)
+                        sleep(0.1)
+                        motors.turn(random.randint(-45, -75), baseSpeed)
+                    elif 3 in line:
+                        motors.forward(baseSpeed)
+                        sleep(0.1)
+                        motors.turn(random.randint(-45, -75), baseSpeed)
+                    elif 5 in line:
+                        motors.forward(baseSpeed)
+                        sleep(0.1)
+                        motors.turn(random.randint(45, 75), baseSpeed)
+                    elif 7 in line:
+                        motors.backward(baseSpeed)
+                        sleep(0.1)
+                        motors.turn(random.randint(45, 75), baseSpeed)
+            else:
+                motors.forward(baseSpeed)
 
     except KeyboardInterrupt:
         print('Exiting program.')
