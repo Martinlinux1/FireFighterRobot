@@ -128,8 +128,6 @@ while True:
 
                 turned = False
 
-        else:
-
 
     except KeyboardInterrupt:
         print('Exiting program.')
