@@ -57,7 +57,6 @@ def is_line():
         if commHandler.get_light_sensor_data(i) > lightSensorsBlack:
             sensors_on_line.append(i)
 
-
     return sensors_on_line
 
 
@@ -117,8 +116,8 @@ while True:
             else:
                 pass
                 motors.slide(max_fire_angle[0] * -1, baseSpeed)
-
-            if max_val[2] > 80:
+            sensors_on_line = is_line()
+            if max_fire_angle[0] < 15 and 0 in sensors_on_line:
                 print("Extinguishing")
                 motors.brake()
                 servo_angle = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
