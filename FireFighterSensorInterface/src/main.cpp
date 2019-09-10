@@ -75,6 +75,8 @@ void setup() {
     }
   }
 
+
+
   mpu.init();
   mpu.initDMP(220, 76, -20, 2008);
   xTaskCreatePinnedToCore(
@@ -147,20 +149,11 @@ void loop() {
 
       // If the request's type is IMU sensor.
       else if (messageType == TYPE_IMU) {
-        if (data == "R") {
-          mpu.initDMP(220, 76, -20, 2008);
+        // Form the response.
+        response = String(mpu.getYawAngle());
 
-          // Form the response.
-          responseEncoded = message;
-        }
-
-        else {
-          // Form the response.
-          response = String(mpu.getYawAngle());
-
-          // Encode the response.
-          responseEncoded = commHandler.encode(TYPE_IMU, response);
-        }
+        // Encode the response.
+        responseEncoded = commHandler.encode(TYPE_IMU, response);
       }
 
       else if (messageType == TYPE_MOTOR) {
