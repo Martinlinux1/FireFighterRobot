@@ -2,14 +2,14 @@ import threading
 from time import sleep
 
 import serial
-from gpiozero import DigitalOutputDevice
-from gpiozero import Servo
+# from gpiozero import DigitalOutputDevice
+# from gpiozero import Servo
 
 import communicationHandler
 import motorController
 from MathUtils import MathUtils
 from cameraReader import CameraReader
-from pyusb2fir import USB2FIR
+from pyUSB2FIR import pyusb2fir
 
 
 # Camera reader
@@ -45,7 +45,7 @@ fanPin = 4
 fan = DigitalOutputDevice(fanPin, False)
 servo = Servo(14)
 
-thermal_camera = USB2FIR(refreshRate=5)
+thermal_camera = pyusb2fir.USB2FIR(refreshRate=5)
 serialPort = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.1)
 
 t = CameraFetcher()
