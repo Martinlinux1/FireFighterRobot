@@ -1,40 +1,21 @@
-import random
-
-import serial
 import threading
 from time import sleep
-import numpy as np
 
-import matplotlib
-
-import matplotlib.pyplot as plt
-
+import serial
 from gpiozero import DigitalOutputDevice
 from gpiozero import Servo
-
-from pyusb2fir import USB2FIR
-from cameraReader import CameraReader
 
 import communicationHandler
 import motorController
 from MathUtils import MathUtils
+from cameraReader import CameraReader
+from pyusb2fir import USB2FIR
 
 
 # Camera reader
 class CameraFetcher(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-
-        # frame = thermal_camera.initializeFrame()
-        # ir = frame.reshape((24, 32))
-        #
-        # matplotlib.use("GTK3Agg")
-        # plt.ion()
-        # self._graph = plt.imshow(ir, interpolation='none')
-        # plt.colorbar()
-        # plt.clim(0, 100)
-        # plt.draw()
-        # plt.show()
 
     def run(self):
         while self.is_alive():
@@ -43,10 +24,6 @@ class CameraFetcher(threading.Thread):
             if 0 in ir:
                 print("camera reading failure")
             else:
-                # ir = np.reshape(ir, (24, 32))
-                # self._graph.set_data(ir)
-                # plt.draw()
-                # plt.pause(0.00001)
                 print("camera reading successful")
             camera_data_read_event.set()
 
