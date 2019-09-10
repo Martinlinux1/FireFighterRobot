@@ -408,6 +408,6 @@ class USB2FIR(object):
                 To = np.sqrt(np.sqrt(irData / (alphaCompensated * self.commonParameters.alphaCorrR[r] * (1 + self.commonParameters.ksTo[r] * (To - self.commonParameters.ct[r]))) + taTr)) - 273.15;
                 frame[pixelidx] = To
                 pixelidx = pixelidx + 2
-                
 
-            
+    def close(self):
+        self.usbhandle.close()

@@ -126,12 +126,13 @@ class MotorController:
                     self._communicationHandler.write_motor('A', 'B', speed)
                     self._communicationHandler.write_motor('B', 'F', speed)
                     self._communicationHandler.write_motor('C', 'B', speed)
+                    self._communicationHandler.write_motor('D', 'F', speed)
 
                 if abs(diff) < 5:
                     self.brake()
                     return
 
-    def turn(self, direction: str, speed: int):
+    def turn_manual(self, direction: str, speed: int):
         if direction == 'L':
             self._communicationHandler.write_motor('A', 'B', speed)
             self._communicationHandler.write_motor('B', 'F', speed)

@@ -3,7 +3,7 @@ from time import sleep
 
 import communicationHandler
 
-serialPort = serial.Serial("/dev/ttyUSB1", 115200, timeout=0.1)
+serialPort = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.1)
 commHandler = communicationHandler.CommunicationHandler(serialPort)
 
 

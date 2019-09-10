@@ -48,16 +48,16 @@ class CameraFetcher(threading.Thread):
                 # plt.draw()
                 # plt.pause(0.00001)
                 print("camera reading successful")
-                camera_data_read_event.set()
+            camera_data_read_event.set()
 
 
 def is_line():
-    sensors_on_line = []
+    on_line_sensors = []
     for i in range(8):
         if commHandler.get_light_sensor_data(i) > lightSensorsBlack:
-            sensors_on_line.append(i)
+            on_line_sensors.append(i)
 
-    return sensors_on_line
+    return on_line_sensors
 
 
 camera_data_read_event = threading.Event()
@@ -80,8 +80,8 @@ motors = motorController.MotorController(commHandler)
 
 baseSpeed = 150
 
-lightSensorsBlack = 600
-lightSensorsWhite = 300
+lightSensorsBlack = 2000
+lightSensorsWhite = 250
 
 t.start()
 
@@ -110,9 +110,9 @@ while True:
 
             if max_fire_angle[0] > 30 or max_fire_angle[0] < -30:
                 if max_fire_angle[0] > 0:
-                    motors.turn('L', baseSpeed)
+                    motors.turn_manual('L', baseSpeed)
                 else:
-                    motors.turn('R', baseSpeed)
+                    motors.turn_manual('R', baseSpeed)
             else:
                 pass
                 motors.slide(max_fire_angle[0] * -1, baseSpeed)
@@ -130,6 +130,7 @@ while True:
                 turned = False
         else:
             line = is_line()
+            print(line)
             if line:
                 if 6 in line and 5 in line and 4 in line:                   # Left downer corner.
                     motors.turn(45, baseSpeed)
@@ -151,20 +152,20 @@ while True:
                 else:                                                       # One sensor detected the line.
                     if 1 in line:
                         motors.backward(baseSpeed)
-                        sleep(0.1)
-                        motors.turn(random.randint(-45, -75), baseSpeed)
+                        sleep(0.3)
+                        motors.turn(-60.0, baseSpeed)
                     elif 3 in line:
                         motors.forward(baseSpeed)
-                        sleep(0.1)
-                        motors.turn(random.randint(-45, -75), baseSpeed)
+                        sleep(0.3)
+                        motors.turn(-60.0, baseSpeed)
                     elif 5 in line:
                         motors.forward(baseSpeed)
-                        sleep(0.1)
-                        motors.turn(random.randint(45, 75), baseSpeed)
+                        sleep(0.3)
+                        motors.turn(60.0, baseSpeed)
                     elif 7 in line:
                         motors.backward(baseSpeed)
-                        sleep(0.1)
-                        motors.turn(random.randint(45, 75), baseSpeed)
+                        sleep(0.3)
+                        motors.turn(60.0, baseSpeed)
             else:
                 motors.forward(baseSpeed)
 
