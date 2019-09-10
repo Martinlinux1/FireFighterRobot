@@ -2,8 +2,8 @@ import threading
 from time import sleep
 
 import serial
-# from gpiozero import DigitalOutputDevice
-# from gpiozero import Servo
+from gpiozero import DigitalOutputDevice
+from gpiozero import Servo
 
 import communicationHandler
 import motorController
