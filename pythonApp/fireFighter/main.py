@@ -127,7 +127,7 @@ while True:
             elif 4 in line and (5 in line or 3 in line):                # Line on the back.
                 motors.turn(180, baseSpeed)
             elif 2 in line and (1 in line or 3 in line):                # Line on the front.
-            #     motors.turn(180, baseSpeed)
+                motors.turn(180, baseSpeed)
 
             if 1 in line:
                 motors.backward(baseSpeed)
