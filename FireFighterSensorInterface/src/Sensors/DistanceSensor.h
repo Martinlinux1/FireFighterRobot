@@ -9,20 +9,13 @@
  */
 
 #include <Arduino.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_VL53L0X.h>
 
 
 class DistanceSensor {
   public:
-    ///<summary> VL53L0X distance sensor reader.
-    ///<param name="useDefaultAddr"> Use default I2C address of the sensor.
-    ///<param name="address"> Optional, I2C address to set the sensor.
-    DistanceSensor(bool useDefaultAddr, int address = 0x29);
+    DistanceSensor(int sensorPin);
 
-    ///<summary> Read the sensor's data.
-    int read();
+    bool read();
   private:
-    Adafruit_VL53L0X sensor = Adafruit_VL53L0X();
-    int address;
+    int sensorPin;
 };
