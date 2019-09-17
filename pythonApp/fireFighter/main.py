@@ -145,7 +145,6 @@ while True:
                 motors.forward(baseSpeed)
                 sleep(0.2)
 
-
             else:
                 motors.forward(baseSpeed)
 
