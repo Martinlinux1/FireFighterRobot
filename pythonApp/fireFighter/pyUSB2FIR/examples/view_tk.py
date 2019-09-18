@@ -39,7 +39,6 @@ class TempView(tk.Tk):
         self.label_temp.pack()
 
         self.queue = queue.Queue()
-
         self.updateMap()
 
     def updateMap(self):
@@ -51,6 +50,7 @@ class TempView(tk.Tk):
             pass
 
         self.after(100, self.updateMap)
+
 
     def setTempValues(self, tempvalues):
 
@@ -94,4 +94,7 @@ t = threading.Thread(target=u2f_fetcher, args=(u2f, app.queue,))
 t.start()
 
 app.mainloop()
+
 t.do_run = False
+
+u2f.close()
