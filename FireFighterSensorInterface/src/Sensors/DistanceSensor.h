@@ -1,11 +1,10 @@
 /**
- * VL53L0X distance sensor reader. Can write a different sensor address to use more sensors on i2c bus.
- * Input: The desired sensor addresses, other distance sensors must be turned off, when setuping the sensor.
- *        (by default they have the same address).
+ * Simple digital IR sensor reader.
+ * Input: Sensor pin.
  * Output: Reading of the sensor
  * 
  * Creator: Martinlinux
- * Version: 0.0
+ * Version: 0.1
  */
 
 #include <Arduino.h>

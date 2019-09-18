@@ -18,6 +18,7 @@
 
 int motorPins[8] = {19, 18, 17, 5, 2, 0, 4, 16};
 int lightSensorPins[8] = {36, 39, 34, 35, 32, 33, 25, 26};
+int distanceSensorPins[5] = {27, 14, 12, 13, 23};
 int motorChannels[4][2] = {
   {0, 1},
   {2, 3},
@@ -45,6 +46,14 @@ LightSensor lightSensors[8] = {
   LightSensor(lightSensorPins[5]),
   LightSensor(lightSensorPins[6]),
   LightSensor(lightSensorPins[7])
+};
+
+DistanceSensor distanceSensors[5] = {
+  DistanceSensor(distanceSensorPins[0]),
+  DistanceSensor(distanceSensorPins[1]),
+  DistanceSensor(distanceSensorPins[2]),
+  DistanceSensor(distanceSensorPins[3]),
+  DistanceSensor(distanceSensorPins[4])
 };
 
 IMUSensor mpu(imuInterruptPin);
@@ -138,11 +147,10 @@ void loop() {
       // If the request's type is distance sensor.
       else if (messageType == TYPE_DISTANCE_SENSOR) {
         int sensorIndex = data.toInt();
-        int reading = lightSensors[sensorIndex].read();
+        int reading = distanceSensors[sensorIndex].read();
         
-        // Form the response.
-        response = String(sensorIndex) + ",45";
-
+        // Form the respo(nse.
+        response = String(sensorIndex) + ',' + String(reading);
         // Encode the response.
         responseEncoded = commHandler.encode(TYPE_DISTANCE_SENSOR, response);
       }
