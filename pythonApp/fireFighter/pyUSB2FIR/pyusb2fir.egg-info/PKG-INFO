@@ -1,0 +1,20 @@
+Metadata-Version: 1.1
+Name: pyusb2fir
+Version: 1.0
+Summary: USB2FIR - Interface for far infrared thermal sensor array MLX90640
+Home-page: https://github.com/EmbedME/pyUSB2FIR
+Author: Thomas Fischl
+Author-email: tfischl@gmx.de
+License: LGPL-3.0
+Description: pyUSB2FIR
+        ========
+        
+        USB2FIR (https://www.fischl.de/usb2fir/) is a interface board
+        to connect the far infrared thermal sensor array MLX90640 via
+        USB to a host system. The library fetches the IR data from
+        the USB2FIR and calculates the pixel temperatures. 
+        
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)
+Classifier: Programming Language :: Python :: 2.7
