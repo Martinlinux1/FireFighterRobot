@@ -32,11 +32,21 @@ def is_line():
     on_line_sensors = []
     for i in range(8):
         light_data = commHandler.get_light_sensor_data(i)
-        print(light_data)
         if light_data > lightSensorsBlack:
             on_line_sensors.append(i)
 
     return on_line_sensors
+
+
+def is_obstacle():
+    sensors_detected = []
+
+    for i in range(5):
+        distance_data = commHandler.get_distance_sensor_data(i)
+        if distance_data:
+            sensors_detected.append(i)
+
+    return sensors_detected
 
 
 camera_data_read_event = threading.Event()
@@ -70,6 +80,9 @@ while True:
         fire_coordinates = cam.is_fire(40)
         camera_data_read_event.clear()
 
+        line = is_line()
+        obstacles = is_obstacle()
+
         if fire_coordinates[0]:
             print("Fire on: ", fire_coordinates)
 
@@ -101,14 +114,13 @@ while True:
                 motors.brake()
                 servo_angle = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
 
-                servo.value = servo_angle
-                fan.on()
-                sleep(5)
-                fan.off()
+                # servo.value = servo_angle
+                # fan.on()
+                # sleep(5)
+                # fan.off()
 
                 turned = False
-        else:
-            line = is_line()
+        elif line:
             print(line)
 
             if 6 in line and 5 in line and 4 in line:                   # Left downer corner.
@@ -145,8 +157,20 @@ while True:
                 motors.forward(baseSpeed)
                 sleep(0.2)
 
-            else:
-                motors.forward(baseSpeed)
+        elif obstacles:
+            if 0 in obstacles:
+                if 2 in obstacles:
+                    motors.turn(-90, baseSpeed)
+                elif 4 in obstacles:
+                    motors.turn(90, baseSpeed)
+                else:
+                    motors.turn(-90, baseSpeed)
+            elif 1 in obstacles:
+                motors.turn(-45, baseSpeed)
+            elif 3 in obstacles:
+                motors.turn(45, baseSpeed)
+        else:
+            motors.forward(baseSpeed)
 
     except KeyboardInterrupt:
         print('Exiting program.')
