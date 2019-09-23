@@ -48,6 +48,27 @@ def is_obstacle():
 
     return sensors_detected
 
+def fire_after_obstacle(direction: str):
+    if direction == 'right':
+        obstacles = is_obstacle()
+        while 2 in obstacles:
+            motors.forward(baseSpeed)
+        sleep(0.2)
+        motors.brake()
+        motors.turn(90, baseSpeed)
+        motors.forward(baseSpeed)
+        sleep(0.3)
+
+    if direction == 'left':
+        obstacles = is_obstacle()
+        while 2 in obstacles:
+            motors.forward(baseSpeed)
+        sleep(0.2)
+        motors.brake()
+        motors.turn(-90, baseSpeed)
+        motors.forward(baseSpeed)
+        sleep(0.3)
+
 
 camera_data_read_event = threading.Event()
 
@@ -169,6 +190,10 @@ while True:
                 motors.turn(-45, baseSpeed)
             elif 3 in obstacles:
                 motors.turn(45, baseSpeed)
+            elif 2 in obstacles:
+                fire_after_obstacle('right')
+            elif 4 in obstacles:
+                fire_after_obstacle('left')
         else:
             motors.forward(baseSpeed)
 

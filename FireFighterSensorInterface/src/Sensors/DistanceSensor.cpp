@@ -7,6 +7,6 @@ DistanceSensor::DistanceSensor(int sensorPin) {
   pinMode(DistanceSensor::sensorPin, INPUT);
 }
 
-bool DistanceSensor::read() {
+int DistanceSensor::read() {
   return digitalRead(DistanceSensor::sensorPin);
 }

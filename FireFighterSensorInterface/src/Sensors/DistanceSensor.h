@@ -14,7 +14,7 @@ class DistanceSensor {
   public:
     DistanceSensor(int sensorPin);
 
-    bool read();
+    int read();
   private:
     int sensorPin;
 };
