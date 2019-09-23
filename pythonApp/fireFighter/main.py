@@ -48,6 +48,7 @@ def is_obstacle():
 
     return sensors_detected
 
+
 def fire_after_obstacle(direction: str):
     if direction == 'right':
         obstacles = is_obstacle()
