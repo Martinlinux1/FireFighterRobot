@@ -136,10 +136,10 @@ while True:
                 motors.brake()
                 servo_angle = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
 
-                # servo.value = servo_angle
-                # fan.on()
-                # sleep(5)
-                # fan.off()
+                servo.value = servo_angle
+                fan.on()
+                sleep(5)
+                fan.off()
 
                 turned = False
         elif line:
