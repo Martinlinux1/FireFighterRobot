@@ -43,7 +43,7 @@ def is_obstacle():
 
     for i in range(5):
         distance_data = commHandler.get_distance_sensor_data(i)
-        if distance_data:
+        if not distance_data:
             sensors_detected.append(i)
 
     return sensors_detected
@@ -91,8 +91,10 @@ motors = motorController.MotorController(commHandler)
 
 baseSpeed = 150
 
-lightSensorsBlack = 1500
+lightSensorsBlack = 2000
 lightSensorsWhite = 250
+
+previousLine = []
 
 t.start()
 
@@ -143,7 +145,7 @@ while True:
 
                 turned = False
         elif line:
-            print(line)
+            print('line')
 
             if 6 in line and 5 in line and 4 in line:                   # Left downer corner.
                 motors.turn(45, baseSpeed)
@@ -167,19 +169,28 @@ while True:
                 motors.backward(baseSpeed)
                 sleep(0.3)
                 motors.brake()
-                print('right')
+                print('left')
                 motors.turn(-60.0, baseSpeed)
-            elif 7 in line:
+            elif 0 or 7 in line:
                 motors.backward(baseSpeed)
                 sleep(0.3)
                 motors.brake()
-                print('left')
+                print('right')
                 motors.turn(60.0, baseSpeed)
             elif 3 or 5 in line:
                 motors.forward(baseSpeed)
                 sleep(0.2)
 
+            if 2 or 4 in line:
+                if 1 in line or 0 in line or 7 in line:
+                    motors.backward(baseSpeed)
+
+            previousLine = line
+
         elif obstacles:
+            print('obstacle detected')
+            print(obstacles)
+
             if 0 in obstacles:
                 if 2 in obstacles:
                     motors.turn(-90, baseSpeed)
@@ -191,13 +202,14 @@ while True:
                 motors.turn(-45, baseSpeed)
             elif 3 in obstacles:
                 motors.turn(45, baseSpeed)
-            elif 2 in obstacles:
-                fire_after_obstacle('right')
-            elif 4 in obstacles:
-                fire_after_obstacle('left')
+            # elif 2 in obstacles:
+            #     fire_after_obstacle('right')
+            # elif 4 in obstacles:
+            #     fire_after_obstacle('left')
         else:
             motors.forward(baseSpeed)
 
-    except KeyboardInterrupt:
-        print('Exiting program.')
+    except Exception as e:
+        thermal_camera.close()
+        print(e)
         break
