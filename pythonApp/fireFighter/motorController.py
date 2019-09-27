@@ -1,3 +1,4 @@
+from time import sleep
 import errors
 import communicationHandler
 import MathUtils
@@ -146,6 +147,11 @@ class MotorController:
 
     """Stops all motors."""
     def brake(self):
+        self._communicationHandler.write_motor('A', 'F', 255)
+        self._communicationHandler.write_motor('B', 'F', 255)
+        self._communicationHandler.write_motor('C', 'F', 255)
+        self._communicationHandler.write_motor('D', 'F', 255)
+        sleep(50)
         self._communicationHandler.write_motor('A', 'F', 0)
         self._communicationHandler.write_motor('B', 'F', 0)
         self._communicationHandler.write_motor('C', 'F', 0)
