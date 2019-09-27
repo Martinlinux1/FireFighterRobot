@@ -4,10 +4,11 @@
  * logic unit, that controls the robot.
  * 
  * Creator: Martinlinux
- * Version: 0.0
+ * Version: 0.1
  */
 
 #include <Arduino.h>
+#include <qtr-sensors-arduino-master/QTRSensors.h>
 #include <Motors/Motor.h>
 #include <Sensors/LightSensor.h>
 #include <Sensors/DistanceSensor.h>
@@ -17,7 +18,7 @@
 
 
 int motorPins[8] = {19, 18, 17, 5, 2, 0, 4, 16};
-int lightSensorPins[8] = {36, 39, 34, 35, 32, 33, 25, 26};
+uint8_t lightSensorPins[8] = {36, 39, 34, 35, 32, 33, 25, 26};
 int distanceSensorPins[5] = {27, 14, 12, 13, 23};
 int motorChannels[4][2] = {
   {0, 1},
@@ -36,17 +37,7 @@ Motor motors[4] = {
   Motor(motorChannels[3])
 };
 
-// Creates light sensor class instance.
-LightSensor lightSensors[8] = {
-  LightSensor(lightSensorPins[0]),
-  LightSensor(lightSensorPins[1]),
-  LightSensor(lightSensorPins[2]),
-  LightSensor(lightSensorPins[3]),
-  LightSensor(lightSensorPins[4]),
-  LightSensor(lightSensorPins[5]),
-  LightSensor(lightSensorPins[6]),
-  LightSensor(lightSensorPins[7])
-};
+QTRSensors lineSensors;
 
 DistanceSensor distanceSensors[5] = {
   DistanceSensor(distanceSensorPins[0]),
@@ -83,6 +74,9 @@ void setup() {
       k++;
     }
   }
+
+  lineSensors.setTypeAnalog();
+  lineSensors.setSensorPins(lightSensorPins, 8);
 
 
 
@@ -122,24 +116,16 @@ void loop() {
       // If request's type is light sensor.
       if (messageType == TYPE_LIGHT_SENSOR) {
         if (data.length() > 0) {
+          uint16_t sensorValues[8];
+          lineSensors.readCalibrated(sensorValues);
           int sensorIndex = data.toInt();
           // Read the light sensor.
-          int lightSensorReading = lightSensors[sensorIndex].read();
+          int lightSensorReading = sensorValues[sensorIndex];
 
           // Form the response
           response = String(sensorIndex) + "," + String(lightSensorReading);
           
           // Encode the response.
-          responseEncoded = commHandler.encode(TYPE_LIGHT_SENSOR, response);
-        }
-
-        else {
-          for (int i = 0; i < 8; i++) {
-            int reading = lightSensors[i].read();
-            response += String(reading) + ',';
-          }
-
-          response.remove(response.length() - 1);
           responseEncoded = commHandler.encode(TYPE_LIGHT_SENSOR, response);
         }
       }
@@ -212,6 +198,15 @@ void loop() {
       else if (messageType == TYPE_ECHO) {
         response = "OK";
         responseEncoded = commHandler.encode(TYPE_ECHO, message);
+      }
+
+      else if (messageType == TYPE_LIGHT_SENSORS_CALIBRATION) {
+        for (int i = 0; i < 4000; i++) {
+          lineSensors.calibrate();
+        }
+
+        response = "OK";
+        responseEncoded = commHandler.encode(TYPE_LIGHT_SENSORS_CALIBRATION, response);
       }
 
       // Invalid request.

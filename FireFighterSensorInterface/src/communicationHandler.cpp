@@ -46,6 +46,11 @@ bool CommunicationHandler::decode(String message, int *messageType, String *data
       *messageType = TYPE_ECHO;
     }
 
+    else if (messageCharArr[i] == CommunicationHandler::lightSensorsCalibration) {
+      *data = CommunicationHandler::getDataFromMessage(message);
+      *messageType = TYPE_LIGHT_SENSORS_CALIBRATION;
+    }
+
     // Invalid message.
     else {
       return false;
@@ -89,6 +94,10 @@ String CommunicationHandler::encode(int messageType, String data) {
 
   else if (messageType == TYPE_ECHO) {
     message += CommunicationHandler::echo;
+  }
+
+  else if (messageType == TYPE_LIGHT_SENSORS_CALIBRATION) {
+    message += CommunicationHandler::lightSensorsCalibration;
   }
 
   // Invalid message type.
