@@ -80,7 +80,7 @@ fan = DigitalOutputDevice(fanPin, False)
 servo = Servo(14)
 
 thermal_camera = pyusb2fir.USB2FIR(refreshRate=5)
-serialPort = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.1)
+serialPort = serial.Serial("/dev/ttyUSB0", 115200)
 
 t = CameraFetcher()
 t.daemon = True
@@ -91,11 +91,14 @@ motors = motorController.MotorController(commHandler, 50)           # Adjust the
 
 baseSpeed = 150
 
-lightSensorsBlack = 2000
+lightSensorsBlack = 900
 lightSensorsWhite = 250
 
 previousLine = []
 
+print('calibrating light sensors')
+commHandler.calibrate_light_sensors()
+print('DONE.')
 t.start()
 
 while True:

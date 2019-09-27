@@ -12,6 +12,7 @@ class CommunicationHandler:
         self._imuSensor = 'I'
         self._motor = 'M'
         self._echo = 'E'
+        self._lightSensorsCalibration = 'C'
 
         self._imuReset = 'R'
 
@@ -49,6 +50,21 @@ class CommunicationHandler:
             data = response[response.find(',') + 1:response.find('}', 3)]
 
             return int(data)
+        # Invalid response.
+        else:
+            raise errors.InvalidMessageException
+
+    def calibrate_light_sensors(self):
+        # Construct the request.
+        message = self._messageStart + self._lightSensorsCalibration + self._dataStart + self._dataEnd + \
+                  self._messageEnd
+
+        # Send the request and wait for response.
+        response = self.write_message(message)
+
+        # If the response is valid, return sent data.
+        if response[1] == self._lightSensorsCalibration:
+            return True
         # Invalid response.
         else:
             raise errors.InvalidMessageException
