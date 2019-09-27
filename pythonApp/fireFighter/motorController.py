@@ -6,9 +6,10 @@ import MathUtils
 
 class MotorController:
     """Handles 4 motors with mecanum wheels motion."""
-    def __init__(self, communication_handler):
+    def __init__(self, communication_handler, brake_delay):
         self._communicationHandler: communicationHandler.CommunicationHandler = communication_handler
         self._mathUtils = MathUtils.MathUtils()
+        self._brake_delay = brake_delay
 
     """Moves the robot forward"""
     def forward(self, speed: int):
@@ -151,7 +152,7 @@ class MotorController:
         self._communicationHandler.write_motor('B', 'F', 255)
         self._communicationHandler.write_motor('C', 'F', 255)
         self._communicationHandler.write_motor('D', 'F', 255)
-        sleep(50)
+        sleep(self._brake_delay)
         self._communicationHandler.write_motor('A', 'F', 0)
         self._communicationHandler.write_motor('B', 'F', 0)
         self._communicationHandler.write_motor('C', 'F', 0)

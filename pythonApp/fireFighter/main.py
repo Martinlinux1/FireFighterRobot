@@ -87,7 +87,7 @@ t.daemon = True
 
 cam = CameraReader(thermal_camera)
 commHandler = communicationHandler.CommunicationHandler(serialPort)
-motors = motorController.MotorController(commHandler)
+motors = motorController.MotorController(commHandler, 50)           # Adjust the brake delay for your motor.
 
 baseSpeed = 150
 
