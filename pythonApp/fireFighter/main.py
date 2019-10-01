@@ -87,16 +87,16 @@ t.daemon = True
 
 cam = CameraReader(thermal_camera)
 commHandler = communicationHandler.CommunicationHandler(serialPort)
-motors = motorController.MotorController(commHandler, 50)           # Adjust the brake delay for your motor.
+motors = motorController.MotorController(commHandler, 0.05)           # Adjust the brake delay for your motor.
 
 baseSpeed = 150
 
-lightSensorsBlack = 900
-lightSensorsWhite = 250
+lightSensorsBlack = 300
 
 previousLine = []
-
-print('calibrating light sensors')
+print('Light sensors calibration in 2 seconds...')
+sleep(2)
+print('calibrating light sensors...')
 commHandler.calibrate_light_sensors()
 print('DONE.')
 t.start()
@@ -190,25 +190,21 @@ while True:
 
             previousLine = line
 
-        elif obstacles:
-            print('obstacle detected')
-            print(obstacles)
-
-            if 0 in obstacles:
-                if 2 in obstacles:
-                    motors.turn(-90, baseSpeed)
-                elif 4 in obstacles:
-                    motors.turn(90, baseSpeed)
-                else:
-                    motors.turn(-90, baseSpeed)
-            elif 1 in obstacles:
-                motors.turn(-45, baseSpeed)
-            elif 3 in obstacles:
-                motors.turn(45, baseSpeed)
-            # elif 2 in obstacles:
-            #     fire_after_obstacle('right')
+        if 0 in obstacles:
+            # if 2 in obstacles:
+            #     motors.turn(-90, baseSpeed)
             # elif 4 in obstacles:
-            #     fire_after_obstacle('left')
+            #     motors.turn(90, baseSpeed)
+            # else:
+            motors.turn(-90, baseSpeed)
+        elif 1 in obstacles:
+            motors.turn(-45, baseSpeed)
+        elif 3 in obstacles:
+            motors.turn(45, baseSpeed)
+        # elif 2 in obstacles:
+        #     fire_after_obstacle('right')
+        # elif 4 in obstacles:
+        #     fire_after_obstacle('left')
         else:
             motors.forward(baseSpeed)
 
