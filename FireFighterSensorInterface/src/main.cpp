@@ -54,7 +54,7 @@ CommunicationHandler commHandler;
 
 TaskHandle_t readIMUSensor;
 TaskHandle_t sensorDataSenderTask;
-
+QueueHandle_t queue;
 
 void readMPU(void * param) {
   for (;;) {
@@ -121,6 +121,9 @@ void setup() {
 
   mpu.init();
   mpu.initDMP(220, 76, -20, 2008);
+
+  queue = xQueueCreate(100, sizeof(String));
+
   xTaskCreate(
     readMPU,
     "IMU reading task",
@@ -143,5 +146,83 @@ void setup() {
 
 // Loop function.
 void loop() {
+  if (Serial.available()) {
+    String message = commHandler.readMessage();
+
+    int messageType;
+    String data;
+    // Decode the request.
+    
+    bool isValid = commHandler.decode(message, &messageType, &data);
+    // If the request is valid.
+    if (isValid) {
+      String response;
+      String responseEncoded;
+
+      if (messageType == TYPE_MOTOR) {
+        // Get the motor to be turned on.
+        String motor = data.substring(0, data.indexOf(","));
+        int motorIndex;
+
+        // Motor A -> motor 0.
+        if (motor == "A") {
+          motorIndex = 0;
+        }
+
+        // Motor B -> motor 1.
+        else if (motor == "B") {
+          motorIndex = 1;
+        }
+
+        // Motor C -> motor 2.
+        else if (motor == "C") {
+          motorIndex = 2;
+        }
+
+        // Motor D -> motor 3.
+        else if (motor == "D") {
+          motorIndex = 3;
+        }
+
+        // Invalid request.
+        else {
+          return;
+        }
+
+        // Get the direction.
+        char direction[10];
+        data.substring(data.indexOf(",") + 1, data.lastIndexOf(",")).toCharArray(direction, 10);
+        int speed = data.substring(data.lastIndexOf(",") + 1, data.indexOf("}")).toInt();
+        
+        // Write the motor.
+        motors[motorIndex].motorWrite(direction[0], speed);
+
+        // Form the response.
+        response = motor + "," + direction[0] + "," + speed;
+        
+        // Encode the response.
+        responseEncoded = commHandler.encode(TYPE_MOTOR, response);
+      }
+
+
+      else if (messageType == TYPE_LIGHT_SENSORS_CALIBRATION) {
+        for (int i = 0; i < 4000; i++) {
+          lineSensors.calibrate();
+        }
+
+        response = "OK";
+        responseEncoded = commHandler.encode(TYPE_LIGHT_SENSORS_CALIBRATION, response);
+      }
+
+      // Invalid request.
+      else {
+        return; 
+      }
+
+      // Send the response.
+      responseEncoded += "\n";
+      Serial.print(responseEncoded);
+    }
+  }
   vTaskDelay(10 / portTICK_PERIOD_MS);
 }
