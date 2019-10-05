@@ -54,6 +54,32 @@ class CommunicationHandler:
         else:
             raise errors.InvalidMessageException
 
+    def get_light_sensors_data(self):
+        # Construct the request.
+        message = self._messageStart + self._lightSensor + self._dataStart + self._dataEnd + self._messageEnd
+
+        # Send the request and wait for response.
+        response = self.write_message(message)
+
+        # If the response is valid, return sent data.
+        if response[1] == self._lightSensor:
+            data = response[response.find('{') + 1:response.find('}', 3)]
+
+            light_sensors_values = []
+
+            data = data.split(',')
+
+            for sensor_value in data:
+                try:
+                    light_sensors_values.append(int(sensor_value))
+                except ValueError:
+                    pass
+
+            return light_sensors_values
+        # Invalid response.
+        else:
+            raise errors.InvalidMessageException
+
     def calibrate_light_sensors(self):
         # Construct the request.
         message = self._messageStart + self._lightSensorsCalibration + self._dataStart + self._dataEnd + \

@@ -53,12 +53,49 @@ IMUSensor mpu(imuInterruptPin);
 CommunicationHandler commHandler;
 
 TaskHandle_t readIMUSensor;
+TaskHandle_t sensorDataSenderTask;
+
+
 void readMPU(void * param) {
   for (;;) {
     mpu.readIMU();
+    vTaskDelay(10 / portTICK_PERIOD_MS);
   }
 }
 
+void sensorDataSender(void * param) {
+  for (;;) {
+    uint16_t sensorValues[8];
+    lineSensors.readCalibrated(sensorValues);
+
+    String lightSensorsData = "";
+    String distanceSensorsData = "";
+    String IMUSensorData = "";
+
+    for (int i = 0; i < 8; i++) {
+      lightSensorsData += String(sensorValues[i]) + ",";
+      if (i < 5) {
+        distanceSensorsData += String(distanceSensors[i].read()) + ",";
+      }
+    }
+
+    IMUSensorData = String(mpu.getYawAngle());
+
+    lightSensorsData = lightSensorsData.substring(0, lightSensorsData.lastIndexOf(','));
+    String lightSensorsDataEncoded = commHandler.encode(TYPE_LIGHT_SENSOR, lightSensorsData);
+
+    distanceSensorsData = distanceSensorsData.substring(0, distanceSensorsData.lastIndexOf(','));
+    String distanceSensorsDataEncoded = commHandler.encode(TYPE_DISTANCE_SENSOR, distanceSensorsData);
+
+    String IMUSensorDataEncoded = commHandler.encode(TYPE_IMU, IMUSensorData);
+
+    Serial.println(lightSensorsDataEncoded);
+    Serial.println(distanceSensorsDataEncoded);
+    Serial.println(IMUSensorDataEncoded);
+
+    vTaskDelay(10 / portTICK_PERIOD_MS);
+  }
+}
 // Setup function.
 void setup() {
   // Serial link setup.
@@ -79,145 +116,32 @@ void setup() {
   lineSensors.setSensorPins(lightSensorPins, 8);
 
 
+  digitalWrite(0, LOW);
+  digitalWrite(2, LOW);
 
   mpu.init();
   mpu.initDMP(220, 76, -20, 2008);
+  xTaskCreate(
+    readMPU,
+    "IMU reading task",
+    100000,
+    NULL,
+    1,
+    &readIMUSensor);
+
   xTaskCreatePinnedToCore(
-                    readMPU,        /* Task function. */
-                    "Task1",        /* name of task. */
-                    10000,          /* Stack size of task */
-                    NULL,           /* parameter of the task */
-                    1,              /* priority of the task */
-                    &readIMUSensor, /* Task handle to keep track of created task */
-                    0);             /* pin task to core 0 */
+    sensorDataSender,
+    "Sensor values sender",
+    100000,
+    NULL,
+    1,
+    &sensorDataSenderTask,
+    0
+  );
   Serial.println(xPortGetCoreID());
 }
 
 // Loop function.
 void loop() {
-  digitalWrite(0, LOW);
-  digitalWrite(2, LOW);
-  // If request was sent from RPi.
-  noInterrupts();
-  if (Serial.available()) {
-    // Read the request.
-    String message = commHandler.readMessage();
-
-    int messageType;
-    String data;
-    // Decode the request.
-    
-    bool isValid = commHandler.decode(message, &messageType, &data);
-    // If the request is valid.
-    if (isValid) {
-      String response;
-      String responseEncoded;
-
-      // If request's type is light sensor.
-      if (messageType == TYPE_LIGHT_SENSOR) {
-        if (data.length() > 0) {
-          uint16_t sensorValues[8];
-          lineSensors.readCalibrated(sensorValues);
-          int sensorIndex = data.toInt();
-          // Read the light sensor.
-          int lightSensorReading = sensorValues[sensorIndex];
-
-          // Form the response
-          response = String(sensorIndex) + "," + String(lightSensorReading);
-          
-          // Encode the response.
-          responseEncoded = commHandler.encode(TYPE_LIGHT_SENSOR, response);
-        }
-      }
-
-      // If the request's type is distance sensor.
-      else if (messageType == TYPE_DISTANCE_SENSOR) {
-        int sensorIndex = data.toInt();
-        int reading = distanceSensors[sensorIndex].read();
-        
-        // Form the respo(nse.
-        response = String(sensorIndex) + ',' + String(reading);
-        // Encode the response.
-        responseEncoded = commHandler.encode(TYPE_DISTANCE_SENSOR, response);
-      }
-
-      // If the request's type is IMU sensor.
-      else if (messageType == TYPE_IMU) {
-        // Form the response.
-        response = String(mpu.getYawAngle());
-
-        // Encode the response.
-        responseEncoded = commHandler.encode(TYPE_IMU, response);
-      }
-
-      else if (messageType == TYPE_MOTOR) {
-        // Get the motor to be turned on.
-        String motor = data.substring(0, data.indexOf(","));
-        int motorIndex;
-
-        // Motor A -> motor 0.
-        if (motor == "A") {
-          motorIndex = 0;
-        }
-
-        // Motor B -> motor 1.
-        else if (motor == "B") {
-          motorIndex = 1;
-        }
-
-        // Motor C -> motor 2.
-        else if (motor == "C") {
-          motorIndex = 2;
-        }
-
-        // Motor D -> motor 3.
-        else if (motor == "D") {
-          motorIndex = 3;
-        }
-
-        // Invalid request.
-        else {
-          return;
-        }
-
-        // Get the direction.
-        char direction[10];
-        data.substring(data.indexOf(",") + 1, data.lastIndexOf(",")).toCharArray(direction, 10);
-        int speed = data.substring(data.lastIndexOf(",") + 1, data.indexOf("}")).toInt();
-        
-        // Write the motor.
-        motors[motorIndex].motorWrite(direction[0], speed);
-
-        // Form the response.
-        response = motor + "," + direction[0] + "," + speed;
-        
-        // Encode the response.
-        responseEncoded = commHandler.encode(TYPE_MOTOR, response);
-      }
-
-      else if (messageType == TYPE_ECHO) {
-        response = "OK";
-        responseEncoded = commHandler.encode(TYPE_ECHO, message);
-      }
-
-      else if (messageType == TYPE_LIGHT_SENSORS_CALIBRATION) {
-        for (int i = 0; i < 4000; i++) {
-          lineSensors.calibrate();
-        }
-
-        response = "OK";
-        responseEncoded = commHandler.encode(TYPE_LIGHT_SENSORS_CALIBRATION, response);
-      }
-
-      // Invalid request.
-      else {
-        return; 
-      }
-
-      // Send the response.
-      responseEncoded += "\n";
-      Serial.print(responseEncoded);
-    }
-  }
-  interrupts();
+  vTaskDelay(10 / portTICK_PERIOD_MS);
 }

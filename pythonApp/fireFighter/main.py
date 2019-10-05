@@ -78,6 +78,7 @@ fanPin = 4
 
 fan = DigitalOutputDevice(fanPin, False)
 servo = Servo(14)
+onLineLED = DigitalOutputDevice(15)
 
 thermal_camera = pyusb2fir.USB2FIR(refreshRate=5)
 serialPort = serial.Serial("/dev/ttyUSB0", 115200)
@@ -148,6 +149,7 @@ while True:
 
                 turned = False
         elif line:
+            onLineLED.on()
             print('line')
 
             if 6 in line and 5 in line and 4 in line:                   # Left downer corner.
@@ -185,10 +187,11 @@ while True:
                 sleep(0.2)
 
             if 2 or 4 in line:
-                if 1 in line or 0 in line or 7 in line:
+                if 1 in previousLine or 0 in previousLine or 7 in previousLine:
                     motors.backward(baseSpeed)
 
             previousLine = line
+            onLineLED.off()
 
         if 0 in obstacles:
             # if 2 in obstacles:
