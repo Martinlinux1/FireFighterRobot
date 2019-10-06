@@ -5,9 +5,8 @@ import serial
 from gpiozero import DigitalOutputDevice
 from gpiozero import Servo
 
-import errors
-
 import communicationHandler
+import errors
 import motorController
 from MathUtils import MathUtils
 from cameraReader import CameraReader
@@ -59,28 +58,42 @@ class SerialReader(threading.Thread):
             last_received_message = data
 
 
-def is_line():
-    on_line_sensors = []
-    for i in range(8):
-        if line_sensors[i] > lightSensorsBlack:
-            on_line_sensors.append(i)
+class LineSensorsReader(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
 
-    return on_line_sensors
+    def run(self) -> None:
+        global sensors_on_line
+
+        while True:
+            line_detected_sensors = []
+
+            for i in range(8):
+                if line_sensors[i] > lightSensorsBlack:
+                    line_detected_sensors.append(i)
+
+            sensors_on_line = line_detected_sensors
 
 
-def is_obstacle():
-    sensors_detected = []
+class DistanceSensorsReader(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
 
-    for i in range(5):
-        if not distance_sensors[i]:
-            sensors_detected.append(i)
+    def run(self) -> None:
+        global obstacles
+        while True:
+            sensors_detected = []
 
-    return sensors_detected
+            for i in range(5):
+                if not distance_sensors[i]:
+                    sensors_detected.append(i)
+
+            obstacles = sensors_detected
 
 
 def fire_after_obstacle(direction: str):
+    global obstacles
     if direction == 'right':
-        obstacles = is_obstacle()
         while 2 in obstacles:
             motors.forward(baseSpeed)
         sleep(0.2)
@@ -90,7 +103,6 @@ def fire_after_obstacle(direction: str):
         sleep(0.3)
 
     if direction == 'left':
-        obstacles = is_obstacle()
         while 2 in obstacles:
             motors.forward(baseSpeed)
         sleep(0.2)
@@ -114,8 +126,15 @@ serialPort = serial.Serial("/dev/ttyUSB0", 115200)
 
 t1 = CameraFetcher()
 t1.daemon = True
+
 t2 = SerialReader()
 t2.daemon = True
+
+t3 = LineSensorsReader()
+t3.daemon = True
+
+t4 = DistanceSensorsReader()
+t4.daemon = True
 
 cam = CameraReader(thermal_camera)
 commHandler = communicationHandler.CommunicationHandler(serialPort)
@@ -126,7 +145,9 @@ baseSpeed = 150
 lightSensorsBlack = 300
 
 line_sensors = []
+sensors_on_line = []
 distance_sensors = []
+obstacles = []
 imu_sensor = -999
 last_received_message = ''
 
@@ -135,19 +156,22 @@ print('Light sensors calibration in 2 seconds...')
 sleep(2)
 print('calibrating light sensors...')
 commHandler.calibrate_light_sensors()
+
+while not (commHandler.lightSensorsCalibration in last_received_message):
+    pass
+
 print('DONE.')
 
 t1.start()
 t2.start()
+t3.start()
+t4.start()
 
 while True:
     try:
         camera_data_read_event.wait()
         fire_coordinates = cam.is_fire(40)
         camera_data_read_event.clear()
-
-        line = is_line()
-        obstacles = is_obstacle()
 
         if fire_coordinates[0]:
             print("Fire on: ", fire_coordinates)
@@ -174,7 +198,7 @@ while True:
             else:
                 pass
                 motors.slide(max_fire_angle[0] * -1, baseSpeed)
-            sensors_on_line = is_line()
+
             if max_fire_angle[0] < 15 and 0 in sensors_on_line:
                 print("Extinguishing")
                 motors.brake()
@@ -182,53 +206,49 @@ while True:
 
                 servo.value = servo_angle
                 fan.on()
-                sleep(5)
-                fan.off()
 
-                turned = False
-        elif line:
+        elif sensors_on_line:
             onLineLED.on()
             print('line')
 
-            if 6 in line and 5 in line and 4 in line:                   # Left downer corner.
+            if 6 in sensors_on_line and 5 in sensors_on_line and 4 in sensors_on_line:  # Left downer corner.
                 motors.turn(45, baseSpeed)
-                motors.forward(baseSpeed)
-            elif 2 in line and 3 in line and 4 in line:                 # Right downer corner.
+            elif 2 in sensors_on_line and 3 in sensors_on_line and 4 in sensors_on_line:  # Right downer corner.
                 motors.turn(-45, baseSpeed)
-            elif 0 in line and 7 in line and 6 in line:                 # Left upper corner.
+            elif 0 in sensors_on_line and 7 in sensors_on_line and 6 in sensors_on_line:  # Left upper corner.
                 motors.turn(135, baseSpeed)
-            elif 0 in line and 1 in line and 2 in line:                 # Right upper corner.
+            elif 0 in sensors_on_line and 1 in sensors_on_line and 2 in sensors_on_line:  # Right upper corner.
                 motors.turn(-135, baseSpeed)
-            elif 6 in line and (7 in line or 5 in line):                # Line on the left.
+            elif 6 in sensors_on_line and (7 in sensors_on_line or 5 in sensors_on_line):  # Line on the left.
                 motors.turn(90, baseSpeed)
-            elif 0 in line and (7 in line or 1 in line):                # Line on the right.
+            elif 0 in sensors_on_line and (7 in sensors_on_line or 1 in sensors_on_line):  # Line on the right.
                 motors.turn(-90, baseSpeed)
-            elif 4 in line and (5 in line or 3 in line):                # Line on the back.
+            elif 4 in sensors_on_line and (5 in sensors_on_line or 3 in sensors_on_line):  # Line on the back.
                 motors.turn(180, baseSpeed)
-            elif 2 in line and (1 in line or 3 in line):                # Line on the front.
+            elif 2 in sensors_on_line and (1 in sensors_on_line or 3 in sensors_on_line):  # Line on the front.
                 motors.turn(180, baseSpeed)
 
-            if 1 in line:
+            if 1 in sensors_on_line:
                 motors.backward(baseSpeed)
                 sleep(0.3)
                 motors.brake()
                 print('left')
                 motors.turn(-60.0, baseSpeed)
-            elif 0 or 7 in line:
+            elif 0 or 7 in sensors_on_line:
                 motors.backward(baseSpeed)
                 sleep(0.3)
                 motors.brake()
                 print('right')
                 motors.turn(60.0, baseSpeed)
-            elif 3 or 5 in line:
+            elif 3 or 5 in sensors_on_line:
                 motors.forward(baseSpeed)
                 sleep(0.2)
 
-            if 2 or 4 in line:
+            if 2 or 4 in sensors_on_line:
                 if 1 in previousLine or 0 in previousLine or 7 in previousLine:
                     motors.backward(baseSpeed)
 
-            previousLine = line
+            previousLine = sensors_on_line
             onLineLED.off()
 
         if 0 in obstacles:

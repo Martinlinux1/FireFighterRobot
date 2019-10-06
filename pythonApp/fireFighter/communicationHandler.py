@@ -1,5 +1,6 @@
-import errors
 import serial
+
+import errors
 
 
 class CommunicationHandler:
@@ -143,15 +144,7 @@ class CommunicationHandler:
         message = self._messageStart + self.lightSensorsCalibration + self._dataStart + self._dataEnd + \
                   self._messageEnd
 
-        # Send the request and wait for response.
-        response = self.write_message(message)
-
-        # If the response is valid, return sent data.
-        if response[1] == self.lightSensorsCalibration:
-            return True
-        # Invalid response.
-        else:
-            raise errors.InvalidMessageException
+        self._serial.write(bytearray(message + '\n', 'ascii'))
 
     """Reads data from distance sensor."""
     def get_distance_sensor_data(self, sensor: int):
@@ -199,15 +192,7 @@ class CommunicationHandler:
         message = self._messageStart + self.motor + self._dataStart + motor + "," + direction + "," + str(speed) \
                   + self._dataEnd + self._messageEnd
 
-        # Send request and wait for response.
-        response = self.write_message(message)
-
-        # If the response is valid, return true.
-        if response == message:
-            return True
-        # Invalid response.
-        else:
-            raise errors.InvalidMessageException
+        self._serial.write(bytearray(message + '\n', 'ascii'))
 
     def echo(self):
         message = self._messageStart + self.imuSensor + self._dataStart + self._dataEnd + self._messageEnd

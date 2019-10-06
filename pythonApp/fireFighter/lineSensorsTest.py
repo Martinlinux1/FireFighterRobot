@@ -1,10 +1,13 @@
 import threading
 from time import sleep
-# from gpiozero import DigitalOutputDevice
 
 import serial
+
 import communicationHandler
 import motorController
+
+
+# from gpiozero import DigitalOutputDevice
 
 
 class LightSensorReader(threading.Thread):
@@ -14,11 +17,11 @@ class LightSensorReader(threading.Thread):
             light_data = commHandler.get_light_sensors_data()
             for i in range(8):
                 if light_data[i] > lightSensorsBlack:
-                    on_line_sensors.append(i)
+                    sensors_on_line.append(i)
 
 turned = False
 fanPin = 4
-on_line_sensors = []
+sensors_on_line = []
 
 serialPort = serial.Serial("/dev/ttyUSB1", 115200)
 
@@ -45,7 +48,7 @@ t1.start()
 
 while True:
     lock.acquire()
-    line = on_line_sensors
+    line = sensors_on_line
 
     print("Action thread.")
 
