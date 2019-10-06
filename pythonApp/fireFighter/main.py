@@ -43,6 +43,8 @@ class SerialReader(threading.Thread):
         while True:
             message = commHandler.read_message()
             for submessage in message:
+                if submessage:
+                    print(submessage)
                 try:
                     message_type, data = commHandler.decode_message(submessage)
                 except Exception:
@@ -54,7 +56,8 @@ class SerialReader(threading.Thread):
                     distance_sensors = data
                 elif message_type == commHandler.imuSensor:
                     imu_sensor = data
-                last_received_message = str(data)
+                elif message_type == commHandler.motor or message_type == commHandler.lightSensorsCalibration:
+                    last_received_message = str(data)
 
 
 class LineSensorsReader(threading.Thread):
@@ -168,8 +171,9 @@ print('calibrating light sensors...')
 commHandler.calibrate_light_sensors()
 
 while not (commHandler.lightSensorsCalibration in last_received_message):
-    print(sensors_on_line, obstacles, imu_sensor)
-    pass
+    motors.forward(100)
+    if last_received_message:
+        print(last_received_message)
 
 print('DONE.')
 
