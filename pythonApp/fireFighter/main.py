@@ -5,6 +5,8 @@ import serial
 from gpiozero import DigitalOutputDevice
 from gpiozero import Servo
 
+import errors
+
 import communicationHandler
 import motorController
 from MathUtils import MathUtils
@@ -17,7 +19,7 @@ class CameraFetcher(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
-    def run(self):
+    def run(self) -> None:
         while self.is_alive():
             ir = cam.read_camera()
 
@@ -28,11 +30,39 @@ class CameraFetcher(threading.Thread):
             camera_data_read_event.set()
 
 
+class SerialReader(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self) -> None:
+        global line_sensors
+        global distance_sensors
+        global imu_sensor
+        global last_received_message
+
+        while True:
+            message = commHandler.read_message()
+            message_type = 0
+            data = 0
+            try:
+                message_type, data = commHandler.decode_message(message)
+            except errors.InvalidMessageException:
+                pass
+
+            if message_type == commHandler.lightSensor:
+                line_sensors = data
+            elif message_type == commHandler.distanceSensor:
+                distance_sensors = data
+            elif message_type == commHandler.imuSensor:
+                imu_sensor = data
+
+            last_received_message = data
+
+
 def is_line():
     on_line_sensors = []
     for i in range(8):
-        light_data = commHandler.get_light_sensor_data(i)
-        if light_data > lightSensorsBlack:
+        if line_sensors[i] > lightSensorsBlack:
             on_line_sensors.append(i)
 
     return on_line_sensors
@@ -42,8 +72,7 @@ def is_obstacle():
     sensors_detected = []
 
     for i in range(5):
-        distance_data = commHandler.get_distance_sensor_data(i)
-        if not distance_data:
+        if not distance_sensors[i]:
             sensors_detected.append(i)
 
     return sensors_detected
@@ -83,8 +112,10 @@ onLineLED = DigitalOutputDevice(15)
 thermal_camera = pyusb2fir.USB2FIR(refreshRate=5)
 serialPort = serial.Serial("/dev/ttyUSB0", 115200)
 
-t = CameraFetcher()
-t.daemon = True
+t1 = CameraFetcher()
+t1.daemon = True
+t2 = SerialReader()
+t2.daemon = True
 
 cam = CameraReader(thermal_camera)
 commHandler = communicationHandler.CommunicationHandler(serialPort)
@@ -94,13 +125,20 @@ baseSpeed = 150
 
 lightSensorsBlack = 300
 
+line_sensors = []
+distance_sensors = []
+imu_sensor = -999
+last_received_message = ''
+
 previousLine = []
 print('Light sensors calibration in 2 seconds...')
 sleep(2)
 print('calibrating light sensors...')
 commHandler.calibrate_light_sensors()
 print('DONE.')
-t.start()
+
+t1.start()
+t2.start()
 
 while True:
     try:
