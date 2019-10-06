@@ -2,15 +2,15 @@ import threading
 from time import sleep
 
 import serial
-from gpiozero import DigitalOutputDevice
-from gpiozero import Servo
 
 import communicationHandler
-import errors
 import motorController
 from MathUtils import MathUtils
 from cameraReader import CameraReader
-from pyUSB2FIR import pyusb2fir
+
+
+# from gpiozero import DigitalOutputDevice
+# from gpiozero import Servo
 
 
 # Camera reader
@@ -20,12 +20,13 @@ class CameraFetcher(threading.Thread):
 
     def run(self) -> None:
         while self.is_alive():
-            ir = cam.read_camera()
+            ir = [0]
+            # ir = cam.read_camera()
 
-            if 0 in ir:
-                print("camera reading failure")
-            else:
-                print("camera reading successful")
+            # if 0 in ir:
+            #     print("camera reading failure")
+            # else:
+            #     print("camera reading successful")
             camera_data_read_event.set()
 
 
@@ -41,21 +42,19 @@ class SerialReader(threading.Thread):
 
         while True:
             message = commHandler.read_message()
-            message_type = 0
-            data = 0
-            try:
-                message_type, data = commHandler.decode_message(message)
-            except errors.InvalidMessageException:
-                pass
+            for submessage in message:
+                try:
+                    message_type, data = commHandler.decode_message(submessage)
+                except Exception:
+                    continue
 
-            if message_type == commHandler.lightSensor:
-                line_sensors = data
-            elif message_type == commHandler.distanceSensor:
-                distance_sensors = data
-            elif message_type == commHandler.imuSensor:
-                imu_sensor = data
-
-            last_received_message = data
+                if message_type == commHandler.lightSensor:
+                    line_sensors = data
+                elif message_type == commHandler.distanceSensor:
+                    distance_sensors = data
+                elif message_type == commHandler.imuSensor:
+                    imu_sensor = data
+                last_received_message = str(data)
 
 
 class LineSensorsReader(threading.Thread):
@@ -67,6 +66,9 @@ class LineSensorsReader(threading.Thread):
 
         while True:
             line_detected_sensors = []
+
+            if not line_sensors:
+                continue
 
             for i in range(8):
                 if line_sensors[i] > lightSensorsBlack:
@@ -83,6 +85,9 @@ class DistanceSensorsReader(threading.Thread):
         global obstacles
         while True:
             sensors_detected = []
+
+            if not distance_sensors:
+                continue
 
             for i in range(5):
                 if not distance_sensors[i]:
@@ -117,11 +122,11 @@ camera_data_read_event = threading.Event()
 turned = False
 fanPin = 4
 
-fan = DigitalOutputDevice(fanPin, False)
-servo = Servo(14)
-onLineLED = DigitalOutputDevice(15)
+# fan = DigitalOutputDevice(fanPin, False)
+# servo = Servo(14)
+# onLineLED = DigitalOutputDevice(15)
 
-thermal_camera = pyusb2fir.USB2FIR(refreshRate=5)
+# thermal_camera = pyusb2fir.USB2FIR(refreshRate=5)
 serialPort = serial.Serial("/dev/ttyUSB0", 115200)
 
 t1 = CameraFetcher()
@@ -136,7 +141,7 @@ t3.daemon = True
 t4 = DistanceSensorsReader()
 t4.daemon = True
 
-cam = CameraReader(thermal_camera)
+# cam = CameraReader(thermal_camera)
 commHandler = communicationHandler.CommunicationHandler(serialPort)
 motors = motorController.MotorController(commHandler, 0.05)           # Adjust the brake delay for your motor.
 
@@ -151,6 +156,11 @@ obstacles = []
 imu_sensor = -999
 last_received_message = ''
 
+t1.start()
+t2.start()
+t3.start()
+t4.start()
+
 previousLine = []
 print('Light sensors calibration in 2 seconds...')
 sleep(2)
@@ -158,14 +168,10 @@ print('calibrating light sensors...')
 commHandler.calibrate_light_sensors()
 
 while not (commHandler.lightSensorsCalibration in last_received_message):
+    print(sensors_on_line, obstacles, imu_sensor)
     pass
 
 print('DONE.')
-
-t1.start()
-t2.start()
-t3.start()
-t4.start()
 
 while True:
     try:
@@ -204,11 +210,11 @@ while True:
                 motors.brake()
                 servo_angle = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
 
-                servo.value = servo_angle
-                fan.on()
+                # servo.value = servo_angle
+                # fan.on()
 
         elif sensors_on_line:
-            onLineLED.on()
+            # onLineLED.on()
             print('line')
 
             if 6 in sensors_on_line and 5 in sensors_on_line and 4 in sensors_on_line:  # Left downer corner.
@@ -249,7 +255,7 @@ while True:
                     motors.backward(baseSpeed)
 
             previousLine = sensors_on_line
-            onLineLED.off()
+            # onLineLED.off()
 
         if 0 in obstacles:
             # if 2 in obstacles:

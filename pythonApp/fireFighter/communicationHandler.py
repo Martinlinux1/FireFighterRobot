@@ -39,16 +39,17 @@ class CommunicationHandler:
             raise errors.InvalidMessageException
 
     def read_message(self):
-        message = ''
-        if self._serial.inWaiting():
-            message = self._serial.readline()
+        message = self._serial.read_all()
+        message = message.decode('ascii')
 
-        message.decode('ascii')
+        message = message[message.rfind('~') + 1:]
+        message = message.split('\t')
 
         return message
 
     def decode_message(self, message: str):
-        message = message[:message.find('\n')]
+        if '\r' in message:
+            message = message[:message.find('\r')]
 
         if message.startswith('<') and message.endswith('>'):
             if message[1] == self.lightSensor:
@@ -85,7 +86,7 @@ class CommunicationHandler:
                 angle = float(data)
 
                 if angle < 0:
-                    return 2 * 180 + angle
+                    return self.imuSensor, 2 * 180 + angle
                 else:
                     return self.imuSensor, angle
             elif message[1] == self.motor:

@@ -89,10 +89,9 @@ void sensorDataSender(void * param) {
 
     String IMUSensorDataEncoded = commHandler.encode(TYPE_IMU, IMUSensorData);
 
-    Serial.println(lightSensorsDataEncoded);
-    Serial.println(distanceSensorsDataEncoded);
-    Serial.println(IMUSensorDataEncoded);
-
+    String message = '~' + lightSensorsDataEncoded + '\t' + distanceSensorsDataEncoded + '\t' + IMUSensorDataEncoded;
+    
+    Serial.println(message);
     vTaskDelay(10 / portTICK_PERIOD_MS);
   }
 }
