@@ -205,12 +205,14 @@ void loop() {
 
 
       else if (messageType == TYPE_LIGHT_SENSORS_CALIBRATION) {
+        vTaskSuspend(sensorDataSenderTask);
         for (int i = 0; i < 4000; i++) {
           lineSensors.calibrate();
         }
 
         response = "OK";
-        responseEncoded = commHandler.encode(TYPE_LIGHT_SENSORS_CALIBRATION, response);
+        responseEncoded = "~" + commHandler.encode(TYPE_LIGHT_SENSORS_CALIBRATION, response);
+        vTaskResume(sensorDataSenderTask);
       }
 
       // Invalid request.

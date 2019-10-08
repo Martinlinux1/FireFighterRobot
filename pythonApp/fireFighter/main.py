@@ -1,4 +1,5 @@
 import threading
+import time
 from time import sleep
 
 import serial
@@ -41,23 +42,24 @@ class SerialReader(threading.Thread):
         global last_received_message
 
         while True:
+            time_start = time.time() * 1000
             message = commHandler.read_message()
-            for submessage in message:
-                if submessage:
-                    print(submessage)
-                try:
-                    message_type, data = commHandler.decode_message(submessage)
-                except Exception:
-                    continue
-
-                if message_type == commHandler.lightSensor:
-                    line_sensors = data
-                elif message_type == commHandler.distanceSensor:
-                    distance_sensors = data
-                elif message_type == commHandler.imuSensor:
-                    imu_sensor = data
-                elif message_type == commHandler.motor or message_type == commHandler.lightSensorsCalibration:
-                    last_received_message = str(data)
+            time_end = time.time() * 1000
+            # for submessage in message:
+            #     try:
+            #         message_type, data = commHandler.decode_message(submessage)
+            #     except Exception:
+            #         continue
+            #
+            #     if message_type == commHandler.lightSensor:
+            #         line_sensors = data
+            #     elif message_type == commHandler.distanceSensor:
+            #         distance_sensors = data
+            #     elif message_type == commHandler.imuSensor:
+            #         imu_sensor = data
+            #     elif message_type == commHandler.motor or message_type == commHandler.lightSensorsCalibration:
+            #         last_received_message = str(data)
+            print(time_end - time_start)
 
 
 class LineSensorsReader(threading.Thread):
@@ -166,14 +168,11 @@ t4.start()
 
 previousLine = []
 print('Light sensors calibration in 2 seconds...')
-sleep(2)
 print('calibrating light sensors...')
 commHandler.calibrate_light_sensors()
 
 while not (commHandler.lightSensorsCalibration in last_received_message):
-    motors.forward(100)
-    if last_received_message:
-        print(last_received_message)
+    pass
 
 print('DONE.')
 

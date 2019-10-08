@@ -39,9 +39,8 @@ class CommunicationHandler:
             raise errors.InvalidMessageException
 
     def read_message(self):
-        message = self._serial.read_all()
+        message = self._serial.read(self._serial.in_waiting)
         message = message.decode('ascii')
-
         message = message[message.rfind('~') + 1:]
         message = message.split('\t')
 
