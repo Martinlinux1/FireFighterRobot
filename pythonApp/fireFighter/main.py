@@ -2,14 +2,15 @@ import threading
 from time import sleep
 
 import serial
-from gpiozero import DigitalOutputDevice
-from gpiozero import Servo
 
 import communicationHandler
 import motorController
 from MathUtils import MathUtils
 from cameraReader import CameraReader
-from pyUSB2FIR import pyusb2fir
+
+
+# from gpiozero import DigitalOutputDevice
+# from gpiozero import Servo
 
 
 # Camera reader
@@ -26,6 +27,54 @@ class CameraFetcher(threading.Thread):
             else:
                 print("camera reading successful")
             camera_data_read_event.set()
+
+
+class LightSensorsReader(threading.Thread):
+    def __init__(self, lock):
+        threading.Thread.__init__(self)
+        self.lock = lock
+
+    def run(self) -> None:
+        global light_sensors
+
+        while True:
+            light_values = []
+            for i in range(8):
+                self.lock.acquire()
+                light_values.append(commHandler.get_light_sensor_data(i))
+                self.lock.release()
+            light_sensors = light_values
+
+
+class DistanceSensorsReader(threading.Thread):
+    def __init__(self, lock):
+        threading.Thread.__init__(self)
+        self.lock = lock
+
+    def run(self) -> None:
+        global distance_sensors
+
+        while True:
+            distance_values = []
+            for i in range(5):
+                self.lock.acquire()
+                distance_values.append(commHandler.get_distance_sensor_data(i))
+                self.lock.release()
+            distance_sensors = distance_values
+
+
+class IMUSensorReader(threading.Thread):
+    def __init__(self, lock):
+        threading.Thread.__init__(self)
+        self.lock = lock
+
+    def run(self) -> None:
+        global imu_sensor
+
+        while True:
+            self.lock.acquire()
+            imu_sensor = commHandler.get_imu_sensor_data()
+            self.lock.release()
 
 
 def is_line():
@@ -76,18 +125,33 @@ camera_data_read_event = threading.Event()
 turned = False
 fanPin = 4
 
-fan = DigitalOutputDevice(fanPin, False)
-servo = Servo(14)
+# fan = DigitalOutputDevice(fanPin, False)
+# servo = Servo(14)
 
-thermal_camera = pyusb2fir.USB2FIR(refreshRate=5)
+# thermal_camera = pyusb2fir.USB2FIR(refreshRate=5)
 serialPort = serial.Serial("/dev/ttyUSB0", 115200)
 
-t = CameraFetcher()
-t.daemon = True
+serial_lock = threading.Lock()
 
-cam = CameraReader(thermal_camera)
+t1 = CameraFetcher()
+t1.daemon = True
+
+t2 = LightSensorsReader(serial_lock)
+t2.daemon = True
+
+t3 = DistanceSensorsReader(serial_lock)
+t3.daemon = True
+
+t4 = IMUSensorReader(serial_lock)
+t4.daemon = True
+
+# cam = CameraReader(thermal_camera)
 commHandler = communicationHandler.CommunicationHandler(serialPort)
 motors = motorController.MotorController(commHandler, 0.05)           # Adjust the brake delay for your motor.
+
+light_sensors = []
+distance_sensors = []
+imu_sensor = -999
 
 baseSpeed = 150
 
@@ -99,7 +163,10 @@ sleep(2)
 print('calibrating light sensors...')
 commHandler.calibrate_light_sensors()
 print('DONE.')
-t.start()
+t1.start()
+t2.start()
+t3.start()
+t4.start()
 
 while True:
     try:
