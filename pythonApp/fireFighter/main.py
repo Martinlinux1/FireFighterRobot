@@ -18,6 +18,8 @@ class CameraFetcher(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        global temperatures
+
         while self.is_alive():
             ir = cam.read_camera()
 
@@ -25,7 +27,8 @@ class CameraFetcher(threading.Thread):
                 print("camera reading failure")
             else:
                 print("camera reading successful")
-            camera_data_read_event.set()
+
+            temperatures = ir
 
 
 def is_line():
@@ -89,6 +92,8 @@ cam = CameraReader(thermal_camera)
 commHandler = communicationHandler.CommunicationHandler(serialPort)
 motors = motorController.MotorController(commHandler, 0.05)           # Adjust the brake delay for your motor.
 
+temperatures = thermal_camera.initializeFrame()
+
 baseSpeed = 150
 
 lightSensorsBlack = 300
@@ -101,114 +106,127 @@ commHandler.calibrate_light_sensors()
 print('DONE.')
 t.start()
 
+turn_delay_time = 0.1
+
 while True:
-    try:
-        camera_data_read_event.wait()
-        fire_coordinates = cam.is_fire(40)
-        camera_data_read_event.clear()
+    # try:
+    fire_coordinates = cam.is_fire(temperatures, 40)
 
-        line = is_line()
-        obstacles = is_obstacle()
+    line = is_line()
+    obstacles = is_obstacle()
 
-        if fire_coordinates[0]:
-            print("Fire on: ", fire_coordinates)
+    if fire_coordinates[0]:
+        print("Fire on: ", fire_coordinates)
 
-            all_fire_angles = cam.coordinates_to_angle(fire_coordinates[1])
+        all_fire_angles = cam.coordinates_to_angle(fire_coordinates[1])
 
-            print("Robot needs to turn: ", all_fire_angles)
+        print("Robot needs to turn: ", all_fire_angles)
 
-            max_val = [0, 0, 0]
-            for i in fire_coordinates[1]:
-                if i[2] > max_val[2]:
-                    max_val = i
+        max_val = [0, 0, 0]
+        for i in fire_coordinates[1]:
+            if i[2] > max_val[2]:
+                max_val = i
 
-            print("Fire closest to robot: ", max_val)
-            max_fire_angle = CameraReader.coordinates_to_angle(fire_coordinates)
+        print("Fire closest to robot: ", max_val)
+        max_fire_angle = CameraReader.coordinates_to_angle(fire_coordinates)
 
-            print("Robot turning: ", max_fire_angle)
+        print("Robot turning: ", max_fire_angle)
 
-            if max_fire_angle[0] > 30 or max_fire_angle[0] < -30:
-                if max_fire_angle[0] > 0:
-                    motors.turn_manual('L', baseSpeed)
-                else:
-                    motors.turn_manual('R', baseSpeed)
+        if max_fire_angle[0] > 30 or max_fire_angle[0] < -30:
+            if max_fire_angle[0] > 0:
+                motors.turn_manual('L', baseSpeed)
             else:
-                pass
-                motors.slide(max_fire_angle[0] * -1, baseSpeed)
-            sensors_on_line = is_line()
-            if max_fire_angle[0] < 15 and 0 in sensors_on_line:
-                print("Extinguishing")
-                motors.brake()
-                servo_angle = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
-
-                servo.value = servo_angle
-                fan.on()
-                sleep(5)
-                fan.off()
-
-                turned = False
-        elif line:
-            print('line')
-
-            if 6 in line and 5 in line and 4 in line:                   # Left downer corner.
-                motors.turn(45, baseSpeed)
-                motors.forward(baseSpeed)
-            elif 2 in line and 3 in line and 4 in line:                 # Right downer corner.
-                motors.turn(-45, baseSpeed)
-            elif 0 in line and 7 in line and 6 in line:                 # Left upper corner.
-                motors.turn(135, baseSpeed)
-            elif 0 in line and 1 in line and 2 in line:                 # Right upper corner.
-                motors.turn(-135, baseSpeed)
-            elif 6 in line and (7 in line or 5 in line):                # Line on the left.
-                motors.turn(90, baseSpeed)
-            elif 0 in line and (7 in line or 1 in line):                # Line on the right.
-                motors.turn(-90, baseSpeed)
-            elif 4 in line and (5 in line or 3 in line):                # Line on the back.
-                motors.turn(180, baseSpeed)
-            elif 2 in line and (1 in line or 3 in line):                # Line on the front.
-                motors.turn(180, baseSpeed)
-
-            if 1 in line:
-                motors.backward(baseSpeed)
-                sleep(0.3)
-                motors.brake()
-                print('left')
-                motors.turn(-60.0, baseSpeed)
-            elif 0 or 7 in line:
-                motors.backward(baseSpeed)
-                sleep(0.3)
-                motors.brake()
-                print('right')
-                motors.turn(60.0, baseSpeed)
-            elif 3 or 5 in line:
-                motors.forward(baseSpeed)
-                sleep(0.2)
-
-            if 2 or 4 in line:
-                if 1 in line or 0 in line or 7 in line:
-                    motors.backward(baseSpeed)
-
-            previousLine = line
-
-        if 0 in obstacles:
-            # if 2 in obstacles:
-            #     motors.turn(-90, baseSpeed)
-            # elif 4 in obstacles:
-            #     motors.turn(90, baseSpeed)
-            # else:
-            motors.turn(-90, baseSpeed)
-        elif 1 in obstacles:
-            motors.turn(-45, baseSpeed)
-        elif 3 in obstacles:
-            motors.turn(45, baseSpeed)
-        # elif 2 in obstacles:
-        #     fire_after_obstacle('right')
-        # elif 4 in obstacles:
-        #     fire_after_obstacle('left')
+                motors.turn_manual('R', baseSpeed)
         else:
-            motors.forward(baseSpeed)
+            pass
+            motors.slide(max_fire_angle[0] * -1, baseSpeed)
+        sensors_on_line = is_line()
+        if max_fire_angle[0] < 15 and 0 in sensors_on_line:
+            print("Extinguishing")
+            motors.brake()
+            servo_angle = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
 
-    except Exception as e:
-        thermal_camera.close()
-        print(e)
-        break
+            servo.value = servo_angle
+            fan.on()
+            sleep(5)
+            fan.off()
+
+            turned = False
+    elif line:
+        print('line')
+
+        if 6 in line and 5 in line and 4 in line:  # Left downer corner.
+            motors.slide(45, baseSpeed)
+            sleep(turn_delay_time)
+            motors.turn(45, baseSpeed)
+        elif 2 in line and 3 in line and 4 in line:  # Right downer corner.
+            motors.slide(-45, baseSpeed)
+            sleep(turn_delay_time)
+            motors.turn(-45, baseSpeed)
+        elif 0 in line and 7 in line and 6 in line:  # Left upper corner.
+            motors.slide(135, baseSpeed)
+            sleep(turn_delay_time)
+            motors.turn(135, baseSpeed)
+        elif 0 in line and 1 in line and 2 in line:  # Right upper corner.
+            motors.slide(-135, baseSpeed)
+            sleep(turn_delay_time)
+            motors.turn(-135, baseSpeed)
+        elif 6 in line and (7 in line or 5 in line):  # Line on the left.
+            motors.slide(90, baseSpeed)
+            sleep(turn_delay_time)
+            motors.turn(90, baseSpeed)
+        elif 0 in line and (7 in line or 1 in line):  # Line on the right.
+            motors.slide(-90, baseSpeed)
+            sleep(turn_delay_time)
+            motors.turn(-90, baseSpeed)
+        elif 4 in line and (5 in line or 3 in line):  # Line on the back.
+            motors.forward(baseSpeed)
+        elif 2 in line and (1 in line or 3 in line):  # Line on the front.
+            motors.backward(baseSpeed)
+            sleep(turn_delay_time)
+            motors.turn(180, baseSpeed)
+
+        if 1 in line:
+            motors.backward(baseSpeed)
+            sleep(0.3)
+            motors.brake()
+            print('left')
+            motors.turn(-60.0, baseSpeed)
+        elif 0 or 7 in line:
+            motors.backward(baseSpeed)
+            sleep(0.3)
+            motors.brake()
+            print('right')
+            motors.turn(60.0, baseSpeed)
+        elif 3 or 5 in line:
+            motors.forward(baseSpeed)
+            sleep(0.2)
+
+        if 2 or 4 in line:
+            if 1 in line or 0 in line or 7 in line:
+                motors.backward(baseSpeed)
+
+        previousLine = line
+
+    if 0 in obstacles:
+        # if 2 in obstacles:
+        #     motors.turn(-90, baseSpeed)
+        # elif 4 in obstacles:
+        #     motors.turn(90, baseSpeed)
+        # else:
+        motors.turn(-90, baseSpeed)
+    elif 1 in obstacles:
+        motors.turn(-45, baseSpeed)
+    elif 3 in obstacles:
+        motors.turn(45, baseSpeed)
+    # elif 2 in obstacles:
+    #     fire_after_obstacle('right')
+    # elif 4 in obstacles:
+    #     fire_after_obstacle('left')
+    else:
+        motors.forward(baseSpeed)
+
+    # except Exception as e:
+    #     thermal_camera.close()
+    #     print(e)
+    #     break
