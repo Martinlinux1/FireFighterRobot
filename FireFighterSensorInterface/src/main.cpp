@@ -117,7 +117,7 @@ void loop() {
       if (messageType == TYPE_LIGHT_SENSOR) {
         if (data.length() > 0) {
           uint16_t sensorValues[8];
-          lineSensors.readCalibrated(sensorValues);
+          lineSensors.read(sensorValues);
           int sensorIndex = data.toInt();
           // Read the light sensor.
           int lightSensorReading = sensorValues[sensorIndex];

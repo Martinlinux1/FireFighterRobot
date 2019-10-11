@@ -1,4 +1,5 @@
 import threading
+import time
 from time import sleep
 
 import serial
@@ -9,7 +10,7 @@ import communicationHandler
 import motorController
 from MathUtils import MathUtils
 from cameraReader import CameraReader
-from pyUSB2FIR import pyusb2fir
+from pyUSB2FIR.pyusb2fir import usb2fir
 
 
 # Camera reader
@@ -24,9 +25,11 @@ class CameraFetcher(threading.Thread):
             ir = cam.read_camera()
 
             if 0 in ir:
-                print("camera reading failure")
+                pass
+                # print("camera reading failure")
             else:
-                print("camera reading successful")
+                pass
+                # print("camera reading successful")
 
             temperatures = ir
 
@@ -80,10 +83,11 @@ turned = False
 fanPin = 4
 
 fan = DigitalOutputDevice(fanPin, False)
+buzzer = DigitalOutputDevice(15)
 servo = Servo(14)
 
-thermal_camera = pyusb2fir.USB2FIR(refreshRate=5)
-serialPort = serial.Serial("/dev/ttyUSB0", 115200)
+thermal_camera = usb2fir.USB2FIR(refreshRate=5)
+serialPort = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.05)
 
 t = CameraFetcher()
 t.daemon = True
@@ -94,16 +98,13 @@ motors = motorController.MotorController(commHandler, 0.05)           # Adjust t
 
 temperatures = thermal_camera.initializeFrame()
 
-baseSpeed = 150
+baseSpeed = 100
 
-lightSensorsBlack = 300
+lightSensorsBlack = 1400
 
 previousLine = []
 print('Light sensors calibration in 2 seconds...')
 sleep(2)
-print('calibrating light sensors...')
-commHandler.calibrate_light_sensors()
-print('DONE.')
 t.start()
 
 turn_delay_time = 0.1
@@ -114,6 +115,7 @@ while True:
 
     line = is_line()
     obstacles = is_obstacle()
+    print(obstacles)
 
     if fire_coordinates[0]:
         print("Fire on: ", fire_coordinates)
@@ -155,50 +157,53 @@ while True:
     elif line:
         print('line')
 
-        if 6 in line and 5 in line and 4 in line:  # Left downer corner.
-            motors.slide(45, baseSpeed)
-            sleep(turn_delay_time)
-            motors.turn(45, baseSpeed)
-        elif 2 in line and 3 in line and 4 in line:  # Right downer corner.
-            motors.slide(-45, baseSpeed)
-            sleep(turn_delay_time)
-            motors.turn(-45, baseSpeed)
-        elif 0 in line and 7 in line and 6 in line:  # Left upper corner.
-            motors.slide(135, baseSpeed)
-            sleep(turn_delay_time)
-            motors.turn(135, baseSpeed)
-        elif 0 in line and 1 in line and 2 in line:  # Right upper corner.
-            motors.slide(-135, baseSpeed)
-            sleep(turn_delay_time)
-            motors.turn(-135, baseSpeed)
-        elif 6 in line and (7 in line or 5 in line):  # Line on the left.
-            motors.slide(90, baseSpeed)
-            sleep(turn_delay_time)
-            motors.turn(90, baseSpeed)
-        elif 0 in line and (7 in line or 1 in line):  # Line on the right.
-            motors.slide(-90, baseSpeed)
-            sleep(turn_delay_time)
-            motors.turn(-90, baseSpeed)
-        elif 4 in line and (5 in line or 3 in line):  # Line on the back.
-            motors.forward(baseSpeed)
-        elif 2 in line and (1 in line or 3 in line):  # Line on the front.
-            motors.backward(baseSpeed)
-            sleep(turn_delay_time)
-            motors.turn(180, baseSpeed)
+        # if 6 in line and 5 in line and 4 in line:  # Left downer corner.
+        #     motors.slide(45, baseSpeed)
+        #     sleep(turn_delay_time)
+        #     motors.turn(45, baseSpeed)
+        # elif 2 in line and 3 in line and 4 in line:  # Right downer corner.
+        #     motors.slide(-45, baseSpeed)
+        #     sleep(turn_delay_time)
+        #     motors.turn(-45, baseSpeed)
+        # elif 0 in line and 7 in line and 6 in line:  # Left upper corner.
+        #     motors.slide(135, baseSpeed)
+        #     sleep(turn_delay_time)
+        #     motors.turn(135, baseSpeed)
+        # elif 0 in line and 1 in line and 2 in line:  # Right upper corner.
+        #     motors.slide(-135, baseSpeed)
+        #     sleep(turn_delay_time)
+        #     motors.turn(-135, baseSpeed)
+        # elif 6 in line and (7 in line or 5 in line):  # Line on the left.
+        #     motors.slide(90, baseSpeed)
+        #     sleep(turn_delay_time)
+        #     motors.turn(90, baseSpeed)
+        # elif 0 in line and (7 in line or 1 in line):  # Line on the right.
+        #     motors.slide(-90, baseSpeed)
+        #     sleep(turn_delay_time)
+        #     motors.turn(-90, baseSpeed)
+        # elif 4 in line and (5 in line or 3 in line):  # Line on the back.
+        #     motors.forward(baseSpeed)
+        # elif 2 in line and (1 in line or 3 in line):  # Line on the front.
+        #     motors.backward(baseSpeed)
+        #     sleep(turn_delay_time)
+        #     motors.turn(180, baseSpeed)
 
         if 1 in line:
+            buzzer.on()
             motors.backward(baseSpeed)
-            sleep(0.3)
+            sleep(0.5)
             motors.brake()
-            print('left')
+            # print('left')
             motors.turn(-60.0, baseSpeed)
         elif 0 or 7 in line:
+            buzzer.on()
             motors.backward(baseSpeed)
-            sleep(0.3)
+            sleep(0.5)
             motors.brake()
-            print('right')
+            # print('right')
             motors.turn(60.0, baseSpeed)
         elif 3 or 5 in line:
+            buzzer.on()
             motors.forward(baseSpeed)
             sleep(0.2)
 
@@ -207,6 +212,7 @@ while True:
                 motors.backward(baseSpeed)
 
         previousLine = line
+        buzzer.off()
 
     if 0 in obstacles:
         # if 2 in obstacles:
@@ -224,7 +230,10 @@ while True:
     # elif 4 in obstacles:
     #     fire_after_obstacle('left')
     else:
+        time_start = time.time()
         motors.forward(baseSpeed)
+        time_elapsed = time.time() - time_start
+        print(time_elapsed * 1000)
 
     # except Exception as e:
     #     thermal_camera.close()
