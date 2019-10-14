@@ -29,9 +29,10 @@ class CameraFetcher(threading.Thread):
 
 
 class LineSensorsReader(threading.Thread):
-    def __init__(self, communication_handler: communicationHandler.CommunicationHandler):
+    def __init__(self, communication_handler: communicationHandler.CommunicationHandler, lock):
         threading.Thread.__init__(self)
         self._communication_handler = communication_handler
+        self._lock = lock
 
     def run(self) -> None:
         global sensors_on_line
@@ -39,8 +40,9 @@ class LineSensorsReader(threading.Thread):
             line_detected_sensors = []
 
             for i in range(8):
+                lock.acquire(blocking=False)
                 line_sensor_value = self._communication_handler.get_light_sensor_data(i)
-
+                lock.release()
                 if line_sensor_value > lightSensorsBlack:
                     line_detected_sensors.append(i)
 
@@ -48,16 +50,19 @@ class LineSensorsReader(threading.Thread):
 
 
 class DistanceSensorsReader(threading.Thread):
-    def __init__(self, communication_handler: communicationHandler.CommunicationHandler):
+    def __init__(self, communication_handler: communicationHandler.CommunicationHandler, lock):
         threading.Thread.__init__(self)
         self._communication_handler = communication_handler
+        self._lock = lock
 
     def run(self) -> None:
         global obstacles
         while True:
             sensors_detected = []
             for i in range(5):
+                lock.acquire(blocking=False)
                 distance_sensor_value = self._communication_handler.get_distance_sensor_data(i)
+                lock.release()
 
                 if not distance_sensor_value:
                     sensors_detected.append(i)
@@ -107,10 +112,10 @@ motors = motorController.MotorController(commHandler, 0.05)           # Adjust t
 t1 = CameraFetcher()
 t1.daemon = True
 
-t3 = LineSensorsReader(commHandler)
+t3 = LineSensorsReader(commHandler, lock)
 t3.daemon = True
 
-t4 = DistanceSensorsReader(commHandler)
+t4 = DistanceSensorsReader(commHandler, lock)
 t4.daemon = True
 
 baseSpeed = 150
