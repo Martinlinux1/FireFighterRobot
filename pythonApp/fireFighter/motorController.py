@@ -1,7 +1,6 @@
-from time import sleep
-import errors
-import communicationHandler
 import MathUtils
+import communicationHandler
+import errors
 
 
 class MotorController:
@@ -13,10 +12,6 @@ class MotorController:
 
     """Moves the robot forward"""
     def forward(self, speed: int):
-        # Invalid argument.
-        if speed > 255:
-            raise errors.InvalidArgumentException
-
         self._communicationHandler.write_motor('A', 'F', speed)
         self._communicationHandler.write_motor('B', 'F', speed)
         self._communicationHandler.write_motor('C', 'F', speed)
@@ -24,10 +19,6 @@ class MotorController:
 
     """Moves the robot backward."""
     def backward(self, speed: int):
-        # Invalid argument.
-        if speed > 255:
-            raise errors.InvalidArgumentException
-
         self._communicationHandler.write_motor('A', 'B', speed)
         self._communicationHandler.write_motor('B', 'B', speed)
         self._communicationHandler.write_motor('C', 'B', speed)

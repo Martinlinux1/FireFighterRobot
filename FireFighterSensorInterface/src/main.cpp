@@ -4,7 +4,7 @@
  * logic unit, that controls the robot.
  * 
  * Creator: Martinlinux
- * Version: 0.1
+ * Version: 0.2
  */
 
 #include <Arduino.h>
@@ -53,16 +53,52 @@ IMUSensor mpu(imuInterruptPin);
 CommunicationHandler commHandler;
 
 TaskHandle_t readIMUSensor;
+TaskHandle_t sensorDataSenderTask;
+QueueHandle_t queue;
+
 void readMPU(void * param) {
   for (;;) {
     mpu.readIMU();
+    vTaskDelay(10 / portTICK_PERIOD_MS);
   }
 }
 
+void sensorDataSender(void * param) {
+  for (;;) {
+    uint16_t sensorValues[8];
+    lineSensors.readCalibrated(sensorValues);
+
+    String lightSensorsData = "";
+    String distanceSensorsData = "";
+    String IMUSensorData = "";
+
+    for (int i = 0; i < 8; i++) {
+      lightSensorsData += String(sensorValues[i]) + ",";
+      if (i < 5) {
+        distanceSensorsData += String(distanceSensors[i].read()) + ",";
+      }
+    }
+
+    IMUSensorData = String(mpu.getYawAngle());
+
+    lightSensorsData = lightSensorsData.substring(0, lightSensorsData.lastIndexOf(','));
+    String lightSensorsDataEncoded = commHandler.encode(TYPE_LIGHT_SENSOR, lightSensorsData);
+
+    distanceSensorsData = distanceSensorsData.substring(0, distanceSensorsData.lastIndexOf(','));
+    String distanceSensorsDataEncoded = commHandler.encode(TYPE_DISTANCE_SENSOR, distanceSensorsData);
+
+    String IMUSensorDataEncoded = commHandler.encode(TYPE_IMU, IMUSensorData);
+
+    String message = '~' + lightSensorsDataEncoded + '\t' + distanceSensorsDataEncoded + '\t' + IMUSensorDataEncoded;
+    
+    Serial.println(message);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
+  }
+}
 // Setup function.
 void setup() {
   // Serial link setup.
-  Serial.begin(115200);
+  Serial.begin(921600);
 
   // Motors pins setup.
   int k = 0;
@@ -79,27 +115,37 @@ void setup() {
   lineSensors.setSensorPins(lightSensorPins, 8);
 
 
+  digitalWrite(0, LOW);
+  digitalWrite(2, LOW);
 
   mpu.init();
   mpu.initDMP(220, 76, -20, 2008);
+
+  queue = xQueueCreate(100, sizeof(String));
+
+  xTaskCreate(
+    readMPU,
+    "IMU reading task",
+    100000,
+    NULL,
+    1,
+    &readIMUSensor);
+
   xTaskCreatePinnedToCore(
-                    readMPU,        /* Task function. */
-                    "Task1",        /* name of task. */
-                    10000,          /* Stack size of task */
-                    NULL,           /* parameter of the task */
-                    1,              /* priority of the task */
-                    &readIMUSensor, /* Task handle to keep track of created task */
-                    0);             /* pin task to core 0 */
+    sensorDataSender,
+    "Sensor values sender",
+    100000,
+    NULL,
+    1,
+    &sensorDataSenderTask,
+    0
+  );
   Serial.println(xPortGetCoreID());
 }
 
 // Loop function.
 void loop() {
-  digitalWrite(0, LOW);
-  digitalWrite(2, LOW);
-  // If request was sent from RPi.
-  noInterrupts();
-  if (Serial.available()) {
+  if (Serial.available()) { 
     // Read the request.
     String message = commHandler.readMessage();
 
@@ -113,44 +159,7 @@ void loop() {
       String response;
       String responseEncoded;
 
-      // If request's type is light sensor.
-      if (messageType == TYPE_LIGHT_SENSOR) {
-        if (data.length() > 0) {
-          uint16_t sensorValues[8];
-          lineSensors.read(sensorValues);
-          int sensorIndex = data.toInt();
-          // Read the light sensor.
-          int lightSensorReading = sensorValues[sensorIndex];
-
-          // Form the response
-          response = String(sensorIndex) + "," + String(lightSensorReading);
-          
-          // Encode the response.
-          responseEncoded = commHandler.encode(TYPE_LIGHT_SENSOR, response);
-        }
-      }
-
-      // If the request's type is distance sensor.
-      else if (messageType == TYPE_DISTANCE_SENSOR) {
-        int sensorIndex = data.toInt();
-        int reading = distanceSensors[sensorIndex].read();
-        
-        // Form the respo(nse.
-        response = String(sensorIndex) + ',' + String(reading);
-        // Encode the response.
-        responseEncoded = commHandler.encode(TYPE_DISTANCE_SENSOR, response);
-      }
-
-      // If the request's type is IMU sensor.
-      else if (messageType == TYPE_IMU) {
-        // Form the response.
-        response = String(mpu.getYawAngle());
-
-        // Encode the response.
-        responseEncoded = commHandler.encode(TYPE_IMU, response);
-      }
-
-      else if (messageType == TYPE_MOTOR) {
+      if (messageType == TYPE_MOTOR) {
         // Get the motor to be turned on.
         String motor = data.substring(0, data.indexOf(","));
         int motorIndex;
@@ -195,18 +204,16 @@ void loop() {
         responseEncoded = commHandler.encode(TYPE_MOTOR, response);
       }
 
-      else if (messageType == TYPE_ECHO) {
-        response = "OK";
-        responseEncoded = commHandler.encode(TYPE_ECHO, message);
-      }
 
       else if (messageType == TYPE_LIGHT_SENSORS_CALIBRATION) {
+        vTaskSuspend(sensorDataSenderTask);
         for (int i = 0; i < 4000; i++) {
           lineSensors.calibrate();
         }
 
         response = "OK";
-        responseEncoded = commHandler.encode(TYPE_LIGHT_SENSORS_CALIBRATION, response);
+        responseEncoded = "~" + commHandler.encode(TYPE_LIGHT_SENSORS_CALIBRATION, response);
+        vTaskResume(sensorDataSenderTask);
       }
 
       // Invalid request.
@@ -217,7 +224,8 @@ void loop() {
       // Send the response.
       responseEncoded += "\n";
       Serial.print(responseEncoded);
+      long timeEnd = micros();
     }
   }
-  interrupts();
+  vTaskDelay(10 / portTICK_PERIOD_MS);
 }
