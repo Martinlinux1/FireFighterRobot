@@ -16,8 +16,8 @@
 # along with pyUSB2FIR.  If not, see <http://www.gnu.org/licenses/>
 
 import libusb1
-import usb1
 import numpy as np
+import usb1
 
 USB2FIR_VID = 0x04D8
 USB2FIR_PID = [0xEE7D, 0x003C]
@@ -144,7 +144,7 @@ class MLXCommonParameters:
                 pixelid = i * 32 + j
                 a = uint6_to_int6((eepromdata[0x40 + pixelid] & 0x03F0) >> 4)
                 a = alphaRef + (accRow[i] << accRowScale) + (accColumn[j] << accColumnScale) + a * (1 << accRemScale)
-                a = (a + 0.0) / (int(1) << alphaScale)
+                a = (a + 0.0) / (int(1) << 37)
                 self.alpha.append(a)
 
 
@@ -214,7 +214,7 @@ class MLXCommonParameters:
 
         alphaScale = ((eepromdata[0x20] & 0xF000) >> 12) + 27
         self.cpAlpha = [0.0, 0.0]
-        self.cpAlpha[0] = (uint10_to_int10(eepromdata[0x39] & 0x03FF) + 0.0) / (1 << alphaScale)
+        self.cpAlpha[0] = (uint10_to_int10(eepromdata[0x39] & 0x03FF) + 0.0) / (1 << 34)
         self.cpAlpha[1] = uint6_to_int6((eepromdata[0x39] & 0xFC00) >> 10) + 0.0
         self.cpAlpha[1] = (1 + self.cpAlpha[1] / 128) * self.cpAlpha[0]
 
