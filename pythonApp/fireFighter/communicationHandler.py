@@ -8,10 +8,9 @@ import errors
 class CommunicationHandler:
     """Handles communication with the sensor interface"""
 
-    def __init__(self, serial_link: serial.Serial, lock):
+    def __init__(self, serial_link: serial.Serial):
         # serial link
         self._serial = serial_link
-        self._lock = lock
 
         self.lightSensor = 'L'
         self.distanceSensor = 'D'
@@ -19,6 +18,7 @@ class CommunicationHandler:
         self.motor = 'M'
         self.echo = 'E'
         self.data = 'A'
+
         self.lightSensorsCalibration = 'C'
 
         self._imuReset = 'R'

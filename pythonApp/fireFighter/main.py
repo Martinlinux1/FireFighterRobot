@@ -21,9 +21,9 @@ class CameraFetcher(threading.Thread):
 
     def run(self):
         global temperatures
-
         while self.is_alive():
-            ir = cam.read_camera()
+            ir = [0]
+            # ir = cam.read_camera()
 
             if 0 in ir:
                 pass
@@ -31,8 +31,6 @@ class CameraFetcher(threading.Thread):
             else:
                 pass
                 # print("camera reading successful")
-
-            temperatures = ir
 
 
 def robot_logic():
@@ -73,15 +71,14 @@ def robot_logic():
             else:
                 pass
                 motors.slide(max_fire_angle[0] * -1, baseSpeed)
+
             if max_fire_angle[0] < 15 and 0 in sensors_on_line:
                 print("Extinguishing")
                 motors.brake()
                 servo_angle = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
 
-                servo.value = servo_angle
-                fan.on()
-                sleep(5)
-                fan.off()
+                # servo.value = servo_angle
+                # fan.on()
 
                 turned = False
         elif sensors_on_line:
@@ -117,9 +114,7 @@ def robot_logic():
             #     motors.backward(baseSpeed)
             #     sleep(turn_delay_time)
             #     motors.turn(180, baseSpeed)
-
             if 1 in sensors_on_line:
-                buzzer.on()
                 motors.backward(baseSpeed)
                 sleep(0.5)
                 motors.brake()
@@ -137,12 +132,11 @@ def robot_logic():
                 motors.forward(baseSpeed)
                 sleep(0.2)
 
-            if 2 or 4 in sensors_on_line:
-                if 1 in sensors_on_line or 0 in sensors_on_line or 7 in sensors_on_line:
-                    motors.backward(baseSpeed)
-
             previousLine = sensors_on_line
             buzzer.off()
+
+            previousLine = sensors_on_line
+            # onLineLED.off()
 
         if 0 in obstacles:
             # if 2 in obstacles:
