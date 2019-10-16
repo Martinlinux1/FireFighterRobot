@@ -18,6 +18,7 @@ class CommunicationHandler:
         self.imuSensor = 'I'
         self.motor = 'M'
         self.echo = 'E'
+        self.data = 'A'
         self.lightSensorsCalibration = 'C'
 
         self._imuReset = 'R'
@@ -31,13 +32,12 @@ class CommunicationHandler:
     """Sends message via serial link."""
     def write_message(self, message: str):
         # Write the message.
-        self._serial.flushInput()
-        self._serial.write(bytes(message + '\n', 'utf-8'))
+        self._serial.write(bytes(message + '\n', 'ascii'))
         # Wait for response.
         response = self._serial.readline()
 
         # If the response is valid, return it.
-        if response.startswith(b'<') and response.endswith(b'\n'):
+        if response.startswith(b'~') and response.endswith(b'\n'):
             return response[:response.find(b'\n')].decode('ascii')
         # Invalid response.
         else:
@@ -97,6 +97,7 @@ class CommunicationHandler:
                 return self.motor, message
             elif message[1] == self.lightSensorsCalibration:
                 return self.lightSensorsCalibration, message
+
             else:
                 raise errors.InvalidMessageException
 
