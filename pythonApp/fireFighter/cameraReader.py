@@ -26,7 +26,7 @@ class CameraReader:
         return self._temperatures
 
     @staticmethod
-    def is_fire(self, temperatures, threshold: int):
+    def is_fire(temperatures, threshold: int):
         fire_positions = []
         for i in range(768):
             # print(self._temperatures[i])

@@ -185,7 +185,7 @@ void loop() {
         response = motor + "," + direction[0] + "," + speed;
         
         // Encode the response.
-        responseEncoded = commHandler.encode(TYPE_MOTOR, response);
+        responseEncoded = "~" + commHandler.encode(TYPE_MOTOR, response);
       }
 
 

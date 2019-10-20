@@ -43,14 +43,6 @@ class CommunicationHandler:
         else:
             raise errors.InvalidMessageException
 
-    def read_message(self):
-        message = self._serial.readline()
-        message = message.decode('ascii')
-        message = message[message.rfind('~') + 1:]
-        message = message.split('\t')
-
-        return message
-
     def decode_message(self, message: str):
         if '\r' in message:
             message = message[:message.find('\r')]

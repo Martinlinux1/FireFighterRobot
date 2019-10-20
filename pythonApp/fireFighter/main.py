@@ -2,16 +2,16 @@ import threading
 import time
 from time import sleep
 
-import numpy as np
 import serial
-from gpiozero import DigitalOutputDevice
-from gpiozero import Servo
 
 import communicationHandler
 import motorController
 from MathUtils import MathUtils
 from cameraReader import CameraReader
-from pyUSB2FIR.pyusb2fir import usb2fir
+
+
+# from gpiozero import DigitalOutputDevice
+# from gpiozero import Servo
 
 
 # Camera reader
@@ -23,14 +23,14 @@ class CameraFetcher(threading.Thread):
         global temperatures
         while self.is_alive():
             ir = [0]
-            # ir = cam.read_camera()
+            ir = cam.read_camera()
 
             if 0 in ir:
                 pass
-                # print("camera reading failure")
+                print("camera reading failure")
             else:
                 pass
-                # print("camera reading successful")
+                print("camera reading successful")
 
 
 def robot_logic():
@@ -41,10 +41,14 @@ def robot_logic():
     global turned
     global baseSpeed
     global temperatures
+    global sensors_on_line
+    global obstacles
+    global motors_speed
 
     while True:
-        # try:
-        fire_coordinates = cam.is_fire(temperatures, threshold=40)
+        motors.forward(200)
+        try:
+            fire_coordinates = cam.is_fire(temperatures=temperatures, threshold=40)
 
         if fire_coordinates[0]:
             print("Fire on: ", fire_coordinates)
@@ -65,16 +69,16 @@ def robot_logic():
 
             if max_fire_angle[0] > 30 or max_fire_angle[0] < -30:
                 if max_fire_angle[0] > 0:
-                    motors.turn_manual('L', baseSpeed)
+                    motors_speed = motors.turn_manual('L', baseSpeed)
                 else:
-                    motors.turn_manual('R', baseSpeed)
+                    motors_speed = motors.turn_manual('R', baseSpeed)
             else:
                 pass
-                motors.slide(max_fire_angle[0] * -1, baseSpeed)
+                motors_speed = motors.slide(max_fire_angle[0] * -1, baseSpeed)
 
             if max_fire_angle[0] < 15 and 0 in sensors_on_line:
                 print("Extinguishing")
-                motors.brake()
+                motors_speed = motors.brake()
                 servo_angle = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
 
                 # servo.value = servo_angle
@@ -115,25 +119,25 @@ def robot_logic():
             #     sleep(turn_delay_time)
             #     motors.turn(180, baseSpeed)
             if 1 in sensors_on_line:
-                motors.backward(baseSpeed)
+                motors_speed = motors.backward(baseSpeed)
                 sleep(0.5)
-                motors.brake()
+                motors_speed = motors.brake()
                 # print('left')
                 motors.turn(-60.0, baseSpeed)
             elif 0 or 7 in sensors_on_line:
-                buzzer.on()
-                motors.backward(baseSpeed)
+                # buzzer.on()
+                motors_speed = motors.backward(baseSpeed)
                 sleep(0.5)
-                motors.brake()
+                motors_speed = motors.brake()
                 # print('right')
                 motors.turn(60.0, baseSpeed)
             elif 3 or 5 in sensors_on_line:
-                buzzer.on()
-                motors.forward(baseSpeed)
+                # buzzer.on()
+                motors_speed = motors.forward(baseSpeed)
                 sleep(0.2)
 
             previousLine = sensors_on_line
-            buzzer.off()
+            # buzzer.off()
 
             previousLine = sensors_on_line
             # onLineLED.off()
@@ -144,18 +148,18 @@ def robot_logic():
             # elif 4 in obstacles:
             #     motors.turn(90, baseSpeed)
             # else:
-            motors.turn(-90, baseSpeed)
+            motors_speed = motors.turn(-90, baseSpeed)
         elif 1 in obstacles:
-            motors.turn(-45, baseSpeed)
+            motors_speed = motors.turn(-45, baseSpeed)
         elif 3 in obstacles:
-            motors.turn(45, baseSpeed)
+            motors_speed = motors.turn(45, baseSpeed)
         # elif 2 in obstacles:
         #     fire_after_obstacle('right')
         # elif 4 in obstacles:
         #     fire_after_obstacle('left')
         else:
             time_start = time.time()
-            motors.forward(baseSpeed)
+            motors_speed = motors.forward(baseSpeed)
             time_elapsed = time.time() - time_start
             print(time_elapsed * 1000)
 
@@ -168,7 +172,7 @@ def robot_logic():
 def is_line(line_sensors_data):
     on_line_sensors = []
     for i in range(8):
-        if line_sensors_data > lightSensorsBlack:
+        if line_sensors_data[i] > lightSensorsBlack:
             on_line_sensors.append(i)
 
     return on_line_sensors
@@ -178,32 +182,32 @@ def is_obstacle(distance_sensors_data):
     sensors_detected = []
 
     for i in range(5):
-        if not distance_sensors_data:
+        if not distance_sensors_data[i]:
             sensors_detected.append(i)
 
     return sensors_detected
 
 
-camera_data_read_event = threading.Event()
-
 turned = False
 fanPin = 4
 
-fan = DigitalOutputDevice(fanPin, False)
-buzzer = DigitalOutputDevice(15)
-servo = Servo(14)
+# fan = DigitalOutputDevice(fanPin, False)
+# buzzer = DigitalOutputDevice(15)
+# servo = Servo(14)
 
-thermal_camera = usb2fir.USB2FIR(refreshRate=5)
+# thermal_camera = usb2fir.USB2FIR(refreshRate=5)
 serialPort = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.05)
 
 t = CameraFetcher()
 t.daemon = True
+t2 = threading.Thread(target=robot_logic)
+t2.daemon = True
 
-cam = CameraReader(thermal_camera)
+# cam = CameraReader(thermal_camera)
 commHandler = communicationHandler.CommunicationHandler(serialPort)
 motors = motorController.MotorController(commHandler, 0.05)           # Adjust the brake delay for your motor.
 
-temperatures = thermal_camera.initializeFrame()
+# temperatures = thermal_camera.initializeFrame()
 
 baseSpeed = 100
 
@@ -220,16 +224,26 @@ imu_sensor = -999
 sensors_on_line = []
 obstacles = []
 
+motors_speed = []
+
 t.start()
+t2.start()
 
 turn_delay_time = 0.1
 
 while True:
     sensors_data = commHandler.get_sensors_data()
+    print(sensors_data)
 
-    line_sensors = sensors_data[0][1]
-    distance_sensors = sensors_data[1][1]
-    imu_sensor = sensors_data[2][1]
+    # line_sensors = sensors_data[0][1]
+    # distance_sensors = sensors_data[1][1]
+    # imu_sensor = sensors_data[2][1]
+    #
+    # sensors_on_line = is_line(line_sensors)
+    # obstacles = is_obstacle(distance_sensors)
 
-    sensors_on_line = is_line(line_sensors)
-    obstacles = is_obstacle(distance_sensors)
+    if motors_speed:
+        commHandler.write_motor('A', motors_speed[0][0], motors_speed[0][1])
+        commHandler.write_motor('B', motors_speed[1][0], motors_speed[1][1])
+        commHandler.write_motor('C', motors_speed[2][0], motors_speed[2][1])
+        commHandler.write_motor('D', motors_speed[3][0], motors_speed[3][1])
