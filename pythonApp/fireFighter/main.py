@@ -232,15 +232,7 @@ t2.start()
 turn_delay_time = 0.1
 
 while True:
-    sensors_data = commHandler.get_sensors_data()
-    print(sensors_data)
 
-    # line_sensors = sensors_data[0][1]
-    # distance_sensors = sensors_data[1][1]
-    # imu_sensor = sensors_data[2][1]
-    #
-    # sensors_on_line = is_line(line_sensors)
-    # obstacles = is_obstacle(distance_sensors)
 
     if motors_speed:
         commHandler.write_motor('A', motors_speed[0][0], motors_speed[0][1])
