@@ -38,13 +38,13 @@ class CommunicationHandler:
 
         # If the response is valid, return it.
         if response.startswith(b'~') and response.endswith(b'\n'):
-            return response[:response.find(b'\n')].decode('ascii')
+            return response[response.find(b'~') + 1:response.find(b'\n')].decode('ascii')
         # Invalid response.
         else:
             raise errors.InvalidMessageException
 
     def read_message(self):
-        message = self._serial.read(self._serial.in_waiting)
+        message = self._serial.readline()
         message = message.decode('ascii')
         message = message[message.rfind('~') + 1:]
         message = message.split('\t')
@@ -100,6 +100,19 @@ class CommunicationHandler:
 
             else:
                 raise errors.InvalidMessageException
+
+    def get_sensors_data(self):
+        message = self._messageStart + self.data + self._dataStart + self._dataEnd + self._messageEnd
+
+        response = self.write_message(message)
+
+        sensors_data = response.split('\t')
+
+        sensors_data_decoded = []
+        for sensor_data in sensors_data:
+            sensors_data_decoded.append(self.decode_message(sensor_data))
+
+        return sensors_data_decoded
 
     """Reads data from light sensor."""
     def get_light_sensor_data(self, sensor: int):

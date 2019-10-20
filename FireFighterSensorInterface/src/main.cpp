@@ -117,7 +117,7 @@ void loop() {
 
       if (messageType == TYPE_DATA) {
         uint16_t sensorValues[8];
-        lineSensors.readCalibrated(sensorValues);
+        lineSensors.read(sensorValues);
 
         String lightSensorsData = "";
         String distanceSensorsData = "";
@@ -141,10 +141,9 @@ void loop() {
         String IMUSensorDataEncoded = commHandler.encode(TYPE_IMU, IMUSensorData);
 
         responseEncoded = '~' + lightSensorsDataEncoded + '\t' + distanceSensorsDataEncoded + '\t' + IMUSensorDataEncoded;
-        Serial.println(responseEncoded);
       }
 
-      if (messageType == TYPE_MOTOR) {
+      else if (messageType == TYPE_MOTOR) {
         // Get the motor to be turned on.
         String motor = data.substring(0, data.indexOf(","));
         int motorIndex;

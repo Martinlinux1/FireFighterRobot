@@ -213,8 +213,8 @@ previousLine = []
 print('Light sensors calibration in 2 seconds...')
 sleep(2)
 
-line_sensors = np.ones(8)
-distance_sensors = np.ones(5)
+line_sensors = []
+distance_sensors = []
 imu_sensor = -999
 
 sensors_on_line = []
@@ -225,13 +225,11 @@ t.start()
 turn_delay_time = 0.1
 
 while True:
-    for i in range(8):
-        line_sensors[i] = commHandler.get_light_sensor_data(i)
+    sensors_data = commHandler.get_sensors_data()
 
-        if i < 5:
-            distance_sensors[i] = commHandler.get_distance_sensor_data(i)
-
-    imu_sensor = commHandler.get_imu_sensor_data()
+    line_sensors = sensors_data[0][1]
+    distance_sensors = sensors_data[1][1]
+    imu_sensor = sensors_data[2][1]
 
     sensors_on_line = is_line(line_sensors)
     obstacles = is_obstacle(distance_sensors)
