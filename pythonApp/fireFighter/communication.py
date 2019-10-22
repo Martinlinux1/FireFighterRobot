@@ -15,7 +15,6 @@ class Communication:
 
     def update_sensors(self):
         sensors_data = self._communication_handler.get_sensors_data()
-        print(sensors_data)
 
         self._light_sensors = sensors_data[0][1]
         self._distance_sensors = sensors_data[1][1]
@@ -31,10 +30,14 @@ class Communication:
         return self._imu_sensor
 
     def update_motors(self):
-        self._communication_handler.write_motor(self._motorA[0], self._motorA[1])
-        self._communication_handler.write_motor(self._motorB[0], self._motorB[1])
-        self._communication_handler.write_motor(self._motorC[0], self._motorC[1])
-        self._communication_handler.write_motor(self._motorD[0], self._motorD[1])
+        if self._motorA:
+            self._communication_handler.write_motor('A', self._motorA[0], self._motorA[1])
+        if self._motorB:
+            self._communication_handler.write_motor('B', self._motorB[0], self._motorB[1])
+        if self._motorC:
+            self._communication_handler.write_motor('C', self._motorC[0], self._motorC[1])
+        if self._motorD:
+            self._communication_handler.write_motor('D', self._motorD[0], self._motorD[1])
 
     def set_motor(self, motor, direction, speed):
         if motor == 'A':

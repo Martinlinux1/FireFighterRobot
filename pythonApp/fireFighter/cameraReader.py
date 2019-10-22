@@ -25,6 +25,9 @@ class CameraReader:
 
         return self._temperatures
 
+    def close(self):
+        self._thermal_camera.close()
+
     @staticmethod
     def is_fire(temperatures, threshold: int):
         fire_positions = []
