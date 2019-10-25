@@ -30,14 +30,15 @@ class Communication:
         return self._imu_sensor
 
     def update_motors(self):
-        if self._motorA:
-            self._communication_handler.write_motor('A', self._motorA[0], self._motorA[1])
-        if self._motorB:
-            self._communication_handler.write_motor('B', self._motorB[0], self._motorB[1])
-        if self._motorC:
-            self._communication_handler.write_motor('C', self._motorC[0], self._motorC[1])
-        if self._motorD:
-            self._communication_handler.write_motor('D', self._motorD[0], self._motorD[1])
+        print(self._motorA, self._motorB, self._motorC, self._motorD)
+        # if self._motorA:
+        #     self._communication_handler.write_motor('A', self._motorA[0], self._motorA[1])
+        # if self._motorB:
+        #     self._communication_handler.write_motor('B', self._motorB[0], self._motorB[1])
+        # if self._motorC:
+        #     self._communication_handler.write_motor('C', self._motorC[0], self._motorC[1])
+        # if self._motorD:
+        #     self._communication_handler.write_motor('D', self._motorD[0], self._motorD[1])
 
     def set_motor(self, motor, direction, speed):
         if motor == 'A':

@@ -33,12 +33,9 @@ class CommunicationHandler:
     def write_message(self, message: str):
         # Write the message.
         self._serial.write(bytes(message + '\n', 'ascii'))
-        self._serial.flush()
         # Wait for response.
         time_start = time.time()
         response = self._serial.readline()
-        print((time.time() - time_start) * 1000)
-        print(response)
 
         # If the response is valid, return it.
         if response.startswith(b'~') and response.endswith(b'\n'):
