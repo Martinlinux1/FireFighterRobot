@@ -10,7 +10,7 @@ class CommunicationHandler:
 
     def __init__(self, serial_link: serial.Serial):
         # serial link
-        self._serial = serial_link
+        self.serial = serial_link
 
         self.lightSensor = 'L'
         self.distanceSensor = 'D'
@@ -30,12 +30,17 @@ class CommunicationHandler:
         self._dataEnd = '}'
 
     """Sends message via serial link."""
+
     def write_message(self, message: str):
+        print(self.serial.is_open)
+        if not self.serial.is_open:
+            self.serial.open()
         # Write the message.
-        self._serial.write(bytes(message + '\n', 'ascii'))
+        self.serial.write(bytes(message + '\n', 'ascii'))
         # Wait for response.
         time_start = time.time()
-        response = self._serial.readline()
+        response = self.serial.readline()
+        self.serial.close()
 
         # If the response is valid, return it.
         if response.startswith(b'~') and response.endswith(b'\n'):
@@ -108,6 +113,7 @@ class CommunicationHandler:
         return sensors_data_decoded
 
     """Reads data from light sensor."""
+
     def get_light_sensor_data(self, sensor: int):
         # Construct the request.
         message = self._messageStart + self.lightSensor + self._dataStart + str(sensor) + self._dataEnd + \
@@ -151,14 +157,8 @@ class CommunicationHandler:
         else:
             raise errors.InvalidMessageException
 
-    def calibrate_light_sensors(self):
-        # Construct the request.
-        message = self._messageStart + self.lightSensorsCalibration + self._dataStart + self._dataEnd + \
-                  self._messageEnd
-
-        self._serial.write(bytearray(message + '\n', 'ascii'))
-
     """Reads data from distance sensor."""
+
     def get_distance_sensor_data(self, sensor: int):
         # Construct the request.
         message = self._messageStart + self.distanceSensor + self._dataStart + str(sensor) + self._dataEnd + \
@@ -177,6 +177,7 @@ class CommunicationHandler:
             raise errors.InvalidMessageException
 
     """Reads data from imu sensor."""
+
     def get_imu_sensor_data(self):
         # Construct the request.
         message = self._messageStart + self.imuSensor + self._dataStart + self._dataEnd + self._messageEnd
@@ -199,11 +200,12 @@ class CommunicationHandler:
             raise errors.InvalidMessageException
 
     """Turns on motor."""
+
     def write_motor(self, motor, direction, speed):
         time_start = time.time()
         # Construct the request.
-        message = self._messageStart + self.motor + self._dataStart + motor + "," + direction + "," + str(speed) \
-                  + self._dataEnd + self._messageEnd
+        message = self._messageStart + self.motor + self._dataStart + motor + "," + direction + "," + str(speed) + \
+                  self._dataEnd + self._messageEnd
 
         # Send request and wait for response.
         response = self.write_message(message)
