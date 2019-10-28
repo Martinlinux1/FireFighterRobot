@@ -16,8 +16,8 @@
 # along with pyUSB2FIR.  If not, see <http://www.gnu.org/licenses/>
 
 import libusb1
-import usb1
 import numpy as np
+import usb1
 
 USB2FIR_VID = 0x04D8
 USB2FIR_PID = [0xEE7D, 0x003C]
