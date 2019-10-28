@@ -51,6 +51,11 @@ bool CommunicationHandler::decode(String message, int *messageType, String *data
       *messageType = TYPE_LIGHT_SENSORS_CALIBRATION;
     }
 
+    else if (messageCharArr[i] == CommunicationHandler::data) {
+      *data = CommunicationHandler::getDataFromMessage(message);
+      *messageType = TYPE_DATA;
+    }
+
     // Invalid message.
     else {
       return false;
