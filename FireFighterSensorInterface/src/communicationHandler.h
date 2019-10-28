@@ -31,7 +31,7 @@
 #define TYPE_IMU 3
 #define TYPE_ECHO 4
 #define TYPE_LIGHT_SENSORS_CALIBRATION 5
-
+#define TYPE_DATA 6
 
 class CommunicationHandler {
   public:
@@ -56,6 +56,7 @@ class CommunicationHandler {
     const char imuSensor = 'I';
     const char motor = 'M';
     const char echo = 'E';
+    const char data = 'A';
     const char lightSensorsCalibration = 'C';
     const char messageStart = '<';
     const char messageEnd = '>';
