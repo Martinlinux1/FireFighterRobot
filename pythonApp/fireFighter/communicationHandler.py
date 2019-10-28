@@ -1,6 +1,5 @@
-import time
-
 import serial
+import time
 
 import errors
 
@@ -32,7 +31,6 @@ class CommunicationHandler:
     """Sends message via serial link."""
 
     def write_message(self, message: str):
-        print(self.serial.is_open)
         if not self.serial.is_open:
             self.serial.open()
         # Write the message.

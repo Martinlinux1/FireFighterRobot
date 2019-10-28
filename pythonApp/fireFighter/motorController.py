@@ -128,7 +128,7 @@ class MotorController:
         if direction == 'L':
             self.left(speed)
         elif direction == 'R':
-            self.left(speed)
+            self.right(speed)
 
     """Stops all motors."""
     def brake(self):
