@@ -60,10 +60,6 @@ def turn(angle, speed):
             comm_parent.send(comm)
             return
 
-
-def is_line(line_sensors):
-
-
 while True:
     comm = comm_parent.recv()
 
