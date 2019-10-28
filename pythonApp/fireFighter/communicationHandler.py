@@ -119,7 +119,6 @@ class CommunicationHandler:
 
         # Send the request and wait for response.
         response = self.write_message(message)
-
         # If the response is valid, return sent data.
         if response[1] == self.lightSensor:
             data = response[response.find(',') + 1:response.find('}', 3)]
