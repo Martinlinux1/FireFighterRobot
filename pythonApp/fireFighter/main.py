@@ -67,7 +67,6 @@ def turn(angle, speed):
         comm = comm_parent.recv()
         motors = motorController.MotorController(comm, 0.05)
         robot_angle = comm.get_imu_sensor()
-        print(robot_angle)
 
         diff = target_angle - robot_angle
         direction = 180 - (diff + 360) % 360
@@ -87,7 +86,6 @@ def turn(angle, speed):
 while True:
     comm = comm_parent.recv()
     motors = motorController.MotorController(comm, 0.05)
-    turn(-90, 200)
 
     light_sensors = comm.get_light_sensors()
     distance_sensors = comm.get_distance_sensors()
@@ -108,22 +106,21 @@ while True:
             sleep(0.1)
             turn(-60, base_speed)
 
-    elif obstacles:
-        if 0 in obstacles:
-            motors.backward(base_speed)
-            comm_parent.send(comm)
-            sleep(0.1)
-            turn(-90, base_speed)
-        elif 1 in obstacles:
-            motors.backward(base_speed)
-            comm_parent.send(comm)
-            sleep(0.1)
-            turn(-45, base_speed)
-        elif 3 in obstacles:
-            motors.backward(base_speed)
-            comm_parent.send(comm)
-            sleep(0.1)
-            turn(45, base_speed)
+    elif 0 in obstacles:
+        motors.backward(base_speed)
+        comm_parent.send(comm)
+        sleep(0.1)
+        turn(-90, base_speed)
+    elif 1 in obstacles:
+        motors.backward(base_speed)
+        comm_parent.send(comm)
+        sleep(0.1)
+        turn(-45, base_speed)
+    elif 3 in obstacles:
+        motors.backward(base_speed)
+        comm_parent.send(comm)
+        sleep(0.1)
+        turn(45, base_speed)
 
     else:
         motors.forward(base_speed)
