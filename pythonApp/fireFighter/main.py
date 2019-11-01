@@ -1,4 +1,5 @@
 import multiprocessing
+from time import sleep
 
 import serial
 
@@ -93,17 +94,17 @@ while True:
     sensors_on_line = is_line(light_sensors)
     obstacles = is_obstacle(distance_sensors)
 
-    # if sensors_on_line:
-    #     if (0 or 7) in sensors_on_line:
-    #         motors.backward(base_speed)
-    #         comm_parent.send(comm)
-    #         sleep(0.1)
-    #         turn(60, base_speed)
-    #     elif 1 in sensors_on_line:
-    #         motors.backward(base_speed)
-    #         comm_parent.send(comm)
-    #         sleep(0.1)
-    #         turn(-60, base_speed)
+    if sensors_on_line:
+        if (0 or 7) in sensors_on_line:
+            motors.backward(base_speed)
+            comm_parent.send(comm)
+            sleep(0.1)
+            turn(60, base_speed)
+        elif 1 in sensors_on_line:
+            motors.backward(base_speed)
+            comm_parent.send(comm)
+            sleep(0.1)
+            turn(-60, base_speed)
 
     if 0 in obstacles:
         turn(-90, base_speed)
