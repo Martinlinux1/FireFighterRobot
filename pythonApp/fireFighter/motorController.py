@@ -27,14 +27,14 @@ class MotorController:
     def left(self, speed: int):
         self._communication.set_motor('A', 'B', speed)
         self._communication.set_motor('B', 'F', speed)
-        self._communication.set_motor('C', 'F', speed)
-        self._communication.set_motor('D', 'B', speed)
+        self._communication.set_motor('C', 'B', speed)
+        self._communication.set_motor('D', 'F', speed)
 
     def right(self, speed: int):
         self._communication.set_motor('A', 'F', speed)
         self._communication.set_motor('B', 'B', speed)
-        self._communication.set_motor('C', 'B', speed)
-        self._communication.set_motor('D', 'F', speed)
+        self._communication.set_motor('C', 'F', speed)
+        self._communication.set_motor('D', 'B', speed)
 
     """Slides the robot to a given angle."""
     def slide(self, angle: float, speed: int):
