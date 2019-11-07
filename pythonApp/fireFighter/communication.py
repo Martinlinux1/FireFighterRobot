@@ -2,8 +2,9 @@ import numpy as np
 
 
 class Communication:
-    def __init__(self, communication_handler):
+    def __init__(self, communication_handler, sensors_reader):
         self._communication_handler = communication_handler
+        self._sensors_reader = sensors_reader
         self._light_sensors = np.int(8)
         self._distance_sensors = np.int(5)
         self._imu_sensor = -999
@@ -14,7 +15,7 @@ class Communication:
         self._motorD = []
 
     def update_sensors(self):
-        sensors_data = self._communication_handler.get_sensors_data()
+        sensors_data = self._sensors_reader.get_sensors_data()
 
         self._light_sensors = sensors_data[0][1]
         self._distance_sensors = sensors_data[1][1]

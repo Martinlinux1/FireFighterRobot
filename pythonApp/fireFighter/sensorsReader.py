@@ -1,7 +1,7 @@
 import communicationHandler
 
 
-class LineSensorsReader:
+class SensorsReader:
     def __init__(self, comm_handler: communicationHandler.CommunicationHandler):
         self._comm_handler = comm_handler
 
