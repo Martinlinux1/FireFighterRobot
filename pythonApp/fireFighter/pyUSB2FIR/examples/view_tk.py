@@ -1,7 +1,8 @@
-import tkinter as tk
 import queue
-from pyusb2fir import USB2FIR
-import threading 
+import threading
+import tkinter as tk
+
+from pyUSB2FIR.pyusb2fir.usb2fir import USB2FIR
 
 
 def rgb(minimum, maximum, value):
