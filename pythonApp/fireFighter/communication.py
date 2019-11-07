@@ -32,7 +32,6 @@ class Communication:
         return self._imu_sensor
 
     def update_motors(self):
-        print(self._motorA)
         if self._motorA:
             self._communication_handler.write_motor('A', self._motorA[0], self._motorA[1])
         if self._motorB:
