@@ -2,9 +2,12 @@ import numpy as np
 
 
 class Communication:
-    def __init__(self, communication_handler, sensors_reader):
+    def __init__(self, communication_handler, sensors_reader, motor_writer):
         self._communication_handler = communication_handler
+
         self._sensors_reader = sensors_reader
+        self._motor_writer = motor_writer
+
         self._light_sensors = np.int(8)
         self._distance_sensors = np.int(5)
         self._imu_sensor = -999
@@ -34,13 +37,13 @@ class Communication:
 
     def update_motors(self):
         if self._motorA:
-            self._communication_handler.write_motor('A', self._motorA[0], self._motorA[1])
+            self._motor_writer.write_motor('A', self._motorA[0], self._motorA[1])
         if self._motorB:
-            self._communication_handler.write_motor('B', self._motorB[0], self._motorB[1])
+            self._motor_writer.write_motor('B', self._motorB[0], self._motorB[1])
         if self._motorC:
-            self._communication_handler.write_motor('C', self._motorC[0], self._motorC[1])
+            self._motor_writer.write_motor('C', self._motorC[0], self._motorC[1])
         if self._motorD:
-            self._communication_handler.write_motor('D', self._motorD[0], self._motorD[1])
+            self._motor_writer.write_motor('D', self._motorD[0], self._motorD[1])
 
     def set_motor(self, motor, direction, speed):
         if motor == 'A':

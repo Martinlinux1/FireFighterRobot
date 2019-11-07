@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 import serial
 
@@ -27,7 +25,6 @@ class CommunicationHandler:
         self._dataEnd = '}'
 
     """Sends message via serial link."""
-
     def write_message(self, message: str):
         if not self.serial.is_open:
             self.serial.open()
@@ -46,6 +43,7 @@ class CommunicationHandler:
         else:
             raise errors.InvalidMessageException
 
+    """Encodes the message."""
     def encode_message(self, message_type, data=''):
         message = self._messageStart
 
@@ -55,6 +53,7 @@ class CommunicationHandler:
 
         return message
 
+    """Decodes the message."""
     def decode_message(self, message: str):
         if '\r' in message:
             message = message[:message.find('\r')]
@@ -92,25 +91,7 @@ class CommunicationHandler:
             else:
                 raise errors.InvalidMessageException
 
-    """Turns on motor."""
-
-    def write_motor(self, motor, direction, speed):
-        time_start = time.time()
-        # Construct the request.
-        message = self._messageStart + self.motor + self._dataStart + motor + "," + direction + "," + str(speed) + \
-                  self._dataEnd + self._messageEnd
-
-        # Send request and wait for response.
-        response = self.write_message(message)
-
-        # If the response is valid, return true.
-        time_end = time.time()
-        if response == message:
-            return True
-        # Invalid response.
-        else:
-            raise errors.InvalidMessageException
-
+    """Sends test message and waits for response."""
     def echo(self):
         message = self._messageStart + self.imuSensor + self._dataStart + self._dataEnd + self._messageEnd
 

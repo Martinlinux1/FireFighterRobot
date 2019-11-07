@@ -5,6 +5,7 @@ class SensorsReader:
     def __init__(self, comm_handler: communicationHandler.CommunicationHandler):
         self._comm_handler = comm_handler
 
+    """Reads data from all sensors at once."""
     def get_sensors_data(self):
         message = self._comm_handler.encode_message(self._comm_handler.sensors_data)
         response = self._comm_handler.write_message(message)
