@@ -12,7 +12,7 @@ class MotorsWriter:
         # Construct the request.
         motors_data = motor + "," + direction + "," + str(speed)
 
-        message = self._comm_handler.encode_message(motors_data)
+        message = self._comm_handler.encode_message(self._comm_handler.motor, motors_data)
 
         # Send request and wait for response.
         response = self._comm_handler.write_message(message)

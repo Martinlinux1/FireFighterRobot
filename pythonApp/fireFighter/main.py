@@ -6,19 +6,21 @@ import serial
 
 import communication
 import communicationHandler
+
+import motorsWriter
+import sensorsReader
+
 import motorController
 
 
 def robot_data_handler(comm_child_pipe):
-    c: communication.Communication = comm_child_pipe.recv()
+    c = comm_child_pipe.recv()
     while True:
         c.update_sensors()
-        # print(t_end - t_start)
         comm_child_pipe.send(c)
-
-        if comm_child_pipe.poll():
-            c = comm_child_pipe.recv()
-            c.update_motors()
+        # print(t_end - t_start
+        c = comm_child_pipe.recv()
+        c.update_motors()
 
 
 def is_line(line_sensors_data):
@@ -77,7 +79,11 @@ def turn(angle, speed, c):
 
 serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
 comm_handler = communicationHandler.CommunicationHandler(serial_port)
-comm: communication.Communication = communication.Communication(comm_handler)
+
+sensors_reader = sensorsReader.SensorsReader(comm_handler)
+motors_writer = motorsWriter.MotorsWriter(comm_handler)
+
+comm: communication.Communication = communication.Communication(comm_handler, sensors_reader, motors_writer)
 
 motors = motorController.MotorController(comm, 0.05)
 
