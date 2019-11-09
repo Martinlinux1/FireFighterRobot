@@ -35,16 +35,17 @@ class Communication:
             return sensors
 
     def update_motors(self):
-        motors = self._motors_pipe_child.recv()
+        if self._motors_pipe_child.poll():
+            motors = self._motors_pipe_child.recv()
 
-        if motors[0]:
-            self._motor_writer.write_motor('A', motors[0][0], motors[0][1])
-        if motors[1]:
-            self._motor_writer.write_motor('B', motors[1][0], motors[1][1])
-        if motors[2]:
-            self._motor_writer.write_motor('C', motors[2][0], motors[2][1])
-        if motors[3]:
-            self._motor_writer.write_motor('D', motors[3][0], motors[3][1])
+            if motors[0]:
+                self._motor_writer.write_motor('A', motors[0][0], motors[0][1])
+            if motors[1]:
+                self._motor_writer.write_motor('B', motors[1][0], motors[1][1])
+            if motors[2]:
+                self._motor_writer.write_motor('C', motors[2][0], motors[2][1])
+            if motors[3]:
+                self._motor_writer.write_motor('D', motors[3][0], motors[3][1])
 
     def set_motor(self, motor, direction, speed):
         if motor == 'A':

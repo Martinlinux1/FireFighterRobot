@@ -7,18 +7,15 @@ import serial
 import communication
 import communicationHandler
 import motorController
+import motorsWriter
+import sensorsReader
 
 
 def robot_data_handler(comm_child_pipe):
-    c: communication.Communication = comm_child_pipe.recv()
     while True:
-        c.update_sensors()
-        # print(t_end - t_start)
-        comm_child_pipe.send(c)
-
-        if comm_child_pipe.poll():
-            c = comm_child_pipe.recv()
-            c.update_motors()
+        comm.update_sensors()
+        comm.update_motors()
+        print('alive')
 
 
 def is_line(line_sensors_data):
@@ -40,11 +37,13 @@ def is_obstacle(distance_sensors_data):
     return sensors_detected
 
 
-def turn(angle, speed, c):
-    if comm_parent.poll():
-        c = comm_parent.recv()
+def turn(angle, speed):
+    try:
+        sensors_data = comm.get_sensors()
+        robot_angle = sensors_data[2]
+    except TypeError:
+        turn(angle, speed)
 
-    robot_angle = c.get_imu_sensor()
     target_angle = robot_angle + angle
     target_angle = target_angle % 360
 
@@ -52,11 +51,8 @@ def turn(angle, speed, c):
         target_angle = target_angle + 360
 
     while True:
-        if comm_parent.poll():
-            c = comm_parent.recv()
-
-        m = motorController.MotorController(c, 0.05)
-        robot_angle = c.get_imu_sensor()
+        sensors_data = comm.get_sensors()
+        robot_angle = sensors_data[2]
 
         print(robot_angle)
 
@@ -64,43 +60,39 @@ def turn(angle, speed, c):
         direction = 180 - (diff + 360) % 360
 
         if direction > 0:
-            m.right(speed)
+            motors.right(speed)
         else:
-            m.left(speed)
-        comm_parent.send(c)
+            motors.left(speed)
 
         if abs(diff) < 5:
-            m.brake()
-            comm_parent.send(c)
+            motors.brake()
             return
 
 
 serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
 comm_handler = communicationHandler.CommunicationHandler(serial_port)
-comm: communication.Communication = communication.Communication(comm_handler)
+sensors_reader = sensorsReader.SensorsReader(comm_handler)
+motors_writer = motorsWriter.MotorsWriter(comm_handler)
+comm: communication.Communication = communication.Communication(sensors_reader, motors_writer)
 
 motors = motorController.MotorController(comm, 0.05)
 
 comm_parent, comm_child = multiprocessing.Pipe()
 
 robot_logic_process = multiprocessing.Process(target=robot_data_handler, args=[comm_child])
-comm_parent.send(comm)
 
 robot_logic_process.start()
 
 base_speed = 100
 
-while not comm_parent.poll():
-    pass
-
 while True:
-    comm = comm_parent.recv()
-
-    motors = motorController.MotorController(comm, 0.05)
-
-    light_sensors = comm.get_light_sensors()
-    distance_sensors = comm.get_distance_sensors()
-    imu_sensor = comm.get_imu_sensor()
+    sensors = comm.get_sensors()
+    try:
+        light_sensors = sensors[0]
+        distance_sensors = sensors[1]
+        imu_sensor = sensors[2]
+    except TypeError:
+        continue
 
     sensors_on_line = is_line(light_sensors)
     obstacles = is_obstacle(distance_sensors)
@@ -108,28 +100,20 @@ while True:
     print(sensors_on_line)
     print(obstacles)
 
-    if sensors_on_line:
-        if (0 or 7) in sensors_on_line:
-            motors.backward(base_speed)
-            comm_parent.send(comm)
-            sleep(0.1)
-            turn(60, base_speed, comm)
-        elif 1 in sensors_on_line:
-            motors.backward(base_speed)
-            comm_parent.send(comm)
-            sleep(0.1)
-            turn(-60, base_speed, comm)
-
-    # if 0 in obstacles:
-    #     turn(-90, base_speed)
-    # elif 1 in obstacles:
-    #     turn(-45, base_speed)
-    # elif 3 in obstacles:
-    #     turn(45, base_speed)
+    if (0 or 7) in sensors_on_line:
+        motors.backward(base_speed)
+        sleep(0.1)
+        turn(60, base_speed)
+    elif 1 in sensors_on_line:
+        motors.backward(base_speed)
+        sleep(0.1)
+        turn(-60, base_speed)
+    elif 0 in obstacles:
+        turn(-90, base_speed)
+    elif 1 in obstacles:
+        turn(-45, base_speed)
+    elif 3 in obstacles:
+        turn(45, base_speed)
 
     else:
         motors.forward(base_speed)
-
-    comm_parent.send(comm)
-
-    del motors
