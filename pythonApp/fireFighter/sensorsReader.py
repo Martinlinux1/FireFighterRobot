@@ -8,7 +8,9 @@ class SensorsReader:
     """Reads data from all sensors at once."""
     def get_sensors_data(self):
         message = self._comm_handler.encode_message(self._comm_handler.sensors_data)
+        # print(message)
         response = self._comm_handler.write_message(message)
+        # print(response)
 
         sensors_data = response.split('\t')
 

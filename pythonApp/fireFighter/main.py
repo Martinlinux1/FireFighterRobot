@@ -1,21 +1,21 @@
 import multiprocessing
-from time import sleep
 
 # from gpiozero import DigitalOutputDevice
 import serial
 
-import communication
 import communicationHandler
+import hardwarehandler
 import motorController
 import motorsWriter
 import sensorsReader
 
 
-def robot_data_handler(comm_child_pipe):
+def robot_data_handler(c):
     while True:
-        comm.update_sensors()
-        comm.update_motors()
         print('alive')
+        c.update_sensors()
+        # print('sensors sent')
+        c.update_motors()
 
 
 def is_line(line_sensors_data):
@@ -37,12 +37,8 @@ def is_obstacle(distance_sensors_data):
     return sensors_detected
 
 
-def turn(angle, speed):
-    try:
-        sensors_data = comm.get_sensors()
-        robot_angle = sensors_data[2]
-    except TypeError:
-        turn(angle, speed)
+def turn(angle, speed, init_angle):
+    robot_angle = init_angle
 
     target_angle = robot_angle + angle
     target_angle = target_angle % 360
@@ -51,7 +47,8 @@ def turn(angle, speed):
         target_angle = target_angle + 360
 
     while True:
-        sensors_data = comm.get_sensors()
+        print('turning')
+        sensors_data = hardware_handler.get_sensors()
         robot_angle = sensors_data[2]
 
         print(robot_angle)
@@ -73,20 +70,18 @@ serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
 comm_handler = communicationHandler.CommunicationHandler(serial_port)
 sensors_reader = sensorsReader.SensorsReader(comm_handler)
 motors_writer = motorsWriter.MotorsWriter(comm_handler)
-comm: communication.Communication = communication.Communication(sensors_reader, motors_writer)
+hardware_handler: hardwarehandler.HardwareHandler = hardwarehandler.HardwareHandler(sensors_reader, motors_writer)
 
-motors = motorController.MotorController(comm, 0.05)
+motors = motorController.MotorController(hardware_handler, 0.05)
 
-comm_parent, comm_child = multiprocessing.Pipe()
-
-robot_logic_process = multiprocessing.Process(target=robot_data_handler, args=[comm_child])
-
+robot_logic_process = multiprocessing.Process(target=robot_data_handler, args=[hardware_handler])
+robot_logic_process.daemon = True
 robot_logic_process.start()
 
 base_speed = 100
 
 while True:
-    sensors = comm.get_sensors()
+    sensors = hardware_handler.get_sensors()
     try:
         light_sensors = sensors[0]
         distance_sensors = sensors[1]
@@ -100,20 +95,20 @@ while True:
     print(sensors_on_line)
     print(obstacles)
 
-    if (0 or 7) in sensors_on_line:
-        motors.backward(base_speed)
-        sleep(0.1)
-        turn(60, base_speed)
-    elif 1 in sensors_on_line:
-        motors.backward(base_speed)
-        sleep(0.1)
-        turn(-60, base_speed)
-    elif 0 in obstacles:
-        turn(-90, base_speed)
-    elif 1 in obstacles:
-        turn(-45, base_speed)
-    elif 3 in obstacles:
-        turn(45, base_speed)
-
-    else:
-        motors.forward(base_speed)
+    # if (0 or 7) in sensors_on_line:
+    #     motors.backward(base_speed)
+    #     sleep(0.1)
+    #     turn(60, base_speed, imu_sensor)
+    # elif 1 in sensors_on_line:
+    #     motors.backward(base_speed)
+    #     sleep(0.1)
+    #     turn(-60, base_speed, imu_sensor)
+    # elif 0 in obstacles:
+    #     turn(-90, base_speed, imu_sensor)
+    # elif 1 in obstacles:
+    #     turn(-45, base_speed, imu_sensor)
+    # elif 3 in obstacles:
+    #     turn(45, base_speed, imu_sensor)
+    #
+    # else:
+    motors.forward(base_speed)
