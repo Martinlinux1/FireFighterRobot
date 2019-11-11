@@ -4,6 +4,7 @@
 .clang_complete
 .gcc-flags.json
 .DS_Store
+pythonApp/fireFighter/__*
 FireFighterSensorInterface/.vscode
 pythonApp/fireFighter/.idea
 .directory

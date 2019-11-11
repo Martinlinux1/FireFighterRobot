@@ -89,6 +89,7 @@ base_speed = 100
 
 while True:
     sensors = hardware_handler.get_sensors()
+
     try:
         light_sensors = sensors[0]
         distance_sensors = sensors[1]
