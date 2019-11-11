@@ -23,13 +23,12 @@ class HardwareHandler:
         self._motorD = []
 
     def update_sensors(self):
-        # print('trying to update sensors')
         sensors_data = self._sensors_reader.get_sensors_data()
-        # print('sensors data updated')
+
         self._light_sensors = sensors_data[0][1]
         self._distance_sensors = sensors_data[1][1]
         self._imu_sensor = sensors_data[2][1]
-        # print('sensors data fetched')
+
         self._sensors_pipe_writer.send([self._light_sensors, self._distance_sensors, self._imu_sensor])
 
     def get_sensors(self):

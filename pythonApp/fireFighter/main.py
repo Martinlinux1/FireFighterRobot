@@ -1,6 +1,7 @@
 import multiprocessing
-
 # from gpiozero import DigitalOutputDevice
+from time import sleep
+
 import serial
 
 import communicationHandler
@@ -14,7 +15,6 @@ def robot_data_handler(c):
     while True:
         print('alive')
         c.update_sensors()
-        # print('sensors sent')
         c.update_motors()
 
 
@@ -37,8 +37,13 @@ def is_obstacle(distance_sensors_data):
     return sensors_detected
 
 
-def turn(angle, speed, init_angle):
-    robot_angle = init_angle
+def turn(handler: hardwarehandler.HardwareHandler, angle, speed):
+    sensors_data = []
+
+    while not sensors_data:
+        sensors_data = handler.get_sensors()
+
+    robot_angle = sensors_data[2]
 
     target_angle = robot_angle + angle
     target_angle = target_angle % 360
@@ -48,7 +53,9 @@ def turn(angle, speed, init_angle):
 
     while True:
         print('turning')
-        sensors_data = hardware_handler.get_sensors()
+        sensors_data = []
+        while not sensors_data:
+            sensors_data = handler.get_sensors()
         robot_angle = sensors_data[2]
 
         print(robot_angle)
@@ -95,20 +102,20 @@ while True:
     print(sensors_on_line)
     print(obstacles)
 
-    # if (0 or 7) in sensors_on_line:
-    #     motors.backward(base_speed)
-    #     sleep(0.1)
-    #     turn(60, base_speed, imu_sensor)
-    # elif 1 in sensors_on_line:
-    #     motors.backward(base_speed)
-    #     sleep(0.1)
-    #     turn(-60, base_speed, imu_sensor)
-    # elif 0 in obstacles:
-    #     turn(-90, base_speed, imu_sensor)
-    # elif 1 in obstacles:
-    #     turn(-45, base_speed, imu_sensor)
-    # elif 3 in obstacles:
-    #     turn(45, base_speed, imu_sensor)
-    #
-    # else:
-    motors.forward(base_speed)
+    if (0 or 7) in sensors_on_line:
+        motors.backward(base_speed)
+        sleep(0.1)
+        turn(hardware_handler, 60, base_speed)
+    elif 1 in sensors_on_line:
+        motors.backward(base_speed)
+        sleep(0.1)
+        turn(hardware_handler, -60, base_speed)
+    elif 0 in obstacles:
+        turn(hardware_handler, -90, base_speed)
+    elif 1 in obstacles:
+        turn(hardware_handler, -45, base_speed)
+    elif 3 in obstacles:
+        turn(hardware_handler, 45, base_speed)
+
+    else:
+        motors.forward(base_speed)
