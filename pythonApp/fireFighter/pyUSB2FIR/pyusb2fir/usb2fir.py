@@ -20,7 +20,7 @@ import numpy as np
 import usb1
 
 USB2FIR_VID = 0x04D8
-USB2FIR_PID = [0xEE7D, 0x003C]
+USB2FIR_PID = 0xEE7D
 
 CMD_GET_CAPABILITY = 0
 CMD_ECHO = 1
@@ -101,9 +101,9 @@ class MLXCommonParameters:
         # extract offset
 
         offsetAverage = uint16_to_int16(eepromdata[0x11])
-        occRowScale = (eepromdata[0x10] & 0x0F00) >> 8;
-        occColumnScale = (eepromdata[0x10] & 0x00F0) >> 4;
-        occRemScale = eepromdata[0x10] & 0x000F;
+        occRowScale = (eepromdata[0x10] & 0x0F00) >> 8
+        occColumnScale = (eepromdata[0x10] & 0x00F0) >> 4
+        occRemScale = eepromdata[0x10] & 0x000F
 
         occRow = []
         for i in range(24):
@@ -125,10 +125,10 @@ class MLXCommonParameters:
         # extract sensitivity
         
         alphaRef = eepromdata[0x21]
-        alphaScale = (eepromdata[0x20] >> 12) + 30
-        accColumnScale = (eepromdata[0x20] & 0x00F0) >> 4;
-        accRowScale = (eepromdata[0x20] & 0x0F00) >> 8;
-        accRemScale = eepromdata[0x20] & 0x000F;
+        alphaScale = int((eepromdata[0x20] >> 12) + 30)
+        accColumnScale = (eepromdata[0x20] & 0x00F0) >> 4
+        accRowScale = (eepromdata[0x20] & 0x0F00) >> 8
+        accRemScale = eepromdata[0x20] & 0x000F
 
         accRow = []
         for i in range(24):
@@ -144,7 +144,7 @@ class MLXCommonParameters:
                 pixelid = i * 32 + j
                 a = uint6_to_int6((eepromdata[0x40 + pixelid] & 0x03F0) >> 4)
                 a = alphaRef + (accRow[i] << accRowScale) + (accColumn[j] << accColumnScale) + a * (1 << accRemScale)
-                a = (a + 0.0) / (int(1) << 37)
+                a = (a + 0.0) / (int(1) << alphaScale)
                 self.alpha.append(a)
 
 
@@ -197,7 +197,7 @@ class MLXCommonParameters:
 
         # extract corner temperatures
 
-        step = ((eepromdata[0x3F] & 0x3000) >> 12) * 10;
+        step = ((eepromdata[0x3F] & 0x3000) >> 12) * 10
         self.ct = [-40, 0, 0, 0]
         self.ct[2] = ((eepromdata[0x3F] & 0x00F0) >> 4) * step
         self.ct[3] = ((eepromdata[0x3F] & 0x0F00) >> 8) * step + self.ct[2]
@@ -212,9 +212,9 @@ class MLXCommonParameters:
 
         # extract the sensitivity alphaCP
 
-        alphaScale = ((eepromdata[0x20] & 0xF000) >> 12) + 27
+        alphaScale = int(((eepromdata[0x20] & 0xF000) >> 12) + 27)
         self.cpAlpha = [0.0, 0.0]
-        self.cpAlpha[0] = (uint10_to_int10(eepromdata[0x39] & 0x03FF) + 0.0) / (1 << 34)
+        self.cpAlpha[0] = (uint10_to_int10(eepromdata[0x39] & 0x03FF) + 0.0) / (1 << alphaScale)
         self.cpAlpha[1] = uint6_to_int6((eepromdata[0x39] & 0xFC00) >> 10) + 0.0
         self.cpAlpha[1] = (1 + self.cpAlpha[1] / 128) * self.cpAlpha[0]
 
@@ -227,7 +227,7 @@ class MLXCommonParameters:
 
         # extract the Kv CP coefficient
 
-        kvScale = (eepromdata[0x38] & 0x0F00) >> 8;
+        kvScale = (eepromdata[0x38] & 0x0F00) >> 8
         self.cpKv = uint8_to_int8((eepromdata[0x3B] & 0xFF00) >> 8)
         self.cpKv = (self.cpKv + 0.0) / (1 << kvScale)
 
@@ -240,14 +240,14 @@ class MLXCommonParameters:
         self.tgc = uint8_to_int8(eepromdata[0x3C] & 0x0ff) / 32.0
 
         # extract resolution setting
-        self.resolutionEE = (eepromdata[0x38] & 0x3000) >> 12;    
+        self.resolutionEE = (eepromdata[0x38] & 0x3000) >> 12
     
 
         self.alphaCorrR = [0] * 4
         self.alphaCorrR[0] = 1 / (1 + self.ksTo[0] * 40)
         self.alphaCorrR[1] = 1
-        self.alphaCorrR[2] = (1 + self.ksTo[2] * self.ct[2]);
-        self.alphaCorrR[3] = self.alphaCorrR[2] * (1 + self.ksTo[3] * (self.ct[3] - self.ct[2]));
+        self.alphaCorrR[2] = (1 + self.ksTo[2] * self.ct[2])
+        self.alphaCorrR[3] = self.alphaCorrR[2] * (1 + self.ksTo[3] * (self.ct[3] - self.ct[2]))
 
 
 
@@ -256,14 +256,10 @@ class USB2FIR(object):
         """
         Initialize and open connection to USB2FIR.
         """
-        ctx = usb1.LibUSBContext()
+        ctx = usb1.USBContext()
 
-        try:
-            self.usbdev = ctx.getByVendorIDAndProductID(USB2FIR_VID, USB2FIR_PID[0])
-            self.usbhandle = self.usbdev.open()
-        except AttributeError:
-            self.usbdev = ctx.getByVendorIDAndProductID(USB2FIR_VID, USB2FIR_PID[1])
-            self.usbhandle = self.usbdev.open()
+        self.usbdev = ctx.getByVendorIDAndProductID(USB2FIR_VID, USB2FIR_PID)
+        self.usbhandle = self.usbdev.open()
 
         self.usbhandle.claimInterface(0)
         self.i2caddress = i2caddress
@@ -294,7 +290,6 @@ class USB2FIR(object):
         data = self.usbhandle.controlRead(libusb1.LIBUSB_TYPE_CLASS, CMD_GET_CAPABILITY, 0, 0, 4)
         return data
 
-
     def get_status(self):
         """
         Get status of last transaction.
@@ -304,13 +299,11 @@ class USB2FIR(object):
         data = self.usbhandle.controlRead(libusb1.LIBUSB_TYPE_CLASS, CMD_GET_STATUS, 0, 0, 1)
         return data[0]
 
-
     def start_bootloader(self):
         """
         Jump to bootloader.
         """
         self.usbhandle.controlWrite(libusb1.LIBUSB_TYPE_CLASS, CMD_START_BOOTLOADER, 0x5237, 0, [])        
-
 
     def read_memory(self, startaddress, length):
         """
@@ -370,7 +363,7 @@ class USB2FIR(object):
         ta = (ptatArt / (1 + self.commonParameters.KvPTAT * (vdd - 3.3)) - self.commonParameters.vPTAT25)
         ta = ta / self.commonParameters.KtPTAT + 25
 
-        tr = ta - 8;
+        tr = ta - 8
 
         ta4 = np.power((ta + 273.15), 4)
         tr4 = np.power((tr + 273.15), 4)        
@@ -389,16 +382,19 @@ class USB2FIR(object):
                 irData = uint16_to_int16(irData) + 0.0                
                 irData = irData * gain
                 irData = irData - self.commonParameters.offset[pixelidx] * (1 + self.commonParameters.kta[pixelidx] * (ta - 25)) * (1 + self.commonParameters.kv[pixelidx] * (vdd - 3.3))
-                irData = irData / emissivity;
+                irData = irData / emissivity
                 
                 irData = irData - self.commonParameters.tgc * irDataCP
 
-                alphaCompensated = (self.commonParameters.alpha[pixelidx] - self.commonParameters.tgc * self.commonParameters.cpAlpha[subpage]) * (1 + self.commonParameters.KsTa * (ta - 25));
+                alphaCompensated = (self.commonParameters.alpha[pixelidx] - self.commonParameters.tgc *
+                                    self.commonParameters.cpAlpha[subpage]) * (
+                                               1 + self.commonParameters.KsTa * (ta - 25))
 
-                Sx = np.power(alphaCompensated, 3) * (irData + alphaCompensated * taTr);
-                Sx = np.sqrt(np.sqrt(Sx)) * self.commonParameters.ksTo[1];
+                Sx = np.power(alphaCompensated, 3) * (irData + alphaCompensated * taTr)
+                Sx = np.sqrt(np.sqrt(Sx)) * self.commonParameters.ksTo[1]
 
-                To = np.sqrt(np.sqrt(irData / (alphaCompensated * (1 - self.commonParameters.ksTo[1] * 273.15) + Sx) + taTr)) - 273.15;
+                To = np.sqrt(np.sqrt(
+                    irData / (alphaCompensated * (1 - self.commonParameters.ksTo[1] * 273.15) + Sx) + taTr)) - 273.15
 
                 if To < self.commonParameters.ct[1]:
                     r = 0
@@ -408,8 +404,9 @@ class USB2FIR(object):
                     r = 2
                 else:
                     r = 3
-            
-                To = np.sqrt(np.sqrt(irData / (alphaCompensated * self.commonParameters.alphaCorrR[r] * (1 + self.commonParameters.ksTo[r] * (To - self.commonParameters.ct[r]))) + taTr)) - 273.15;
+
+                To = np.sqrt(np.sqrt(irData / (alphaCompensated * self.commonParameters.alphaCorrR[r] * (
+                            1 + self.commonParameters.ksTo[r] * (To - self.commonParameters.ct[r]))) + taTr)) - 273.15
                 frame[pixelidx] = To
                 pixelidx = pixelidx + 2
                 

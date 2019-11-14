@@ -188,16 +188,6 @@ void loop() {
         responseEncoded = "~" + commHandler.encode(TYPE_MOTOR, response);
       }
 
-
-      else if (messageType == TYPE_LIGHT_SENSORS_CALIBRATION) {
-        for (int i = 0; i < 4000; i++) {
-          lineSensors.calibrate();
-        }
-
-        response = "OK";
-        responseEncoded = "~" + commHandler.encode(TYPE_LIGHT_SENSORS_CALIBRATION, response);
-      }
-
       // Invalid request.
       else {
         return; 
