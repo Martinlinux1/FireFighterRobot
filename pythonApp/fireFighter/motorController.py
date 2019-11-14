@@ -1,6 +1,6 @@
-import MathUtils
 import errors
 import hardwarehandler
+import mathUtils
 
 
 class MotorController:
@@ -8,7 +8,7 @@ class MotorController:
 
     def __init__(self, hardware_handler, brake_delay):
         self._handler: hardwarehandler.HardwareHandler = hardware_handler
-        self._mathUtils = MathUtils.MathUtils()
+        self._mathUtils = mathUtils.MathUtils()
         self._brake_delay = brake_delay
 
     """Moves the robot forward"""

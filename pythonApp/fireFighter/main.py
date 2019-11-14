@@ -1,14 +1,34 @@
 import multiprocessing
-# from gpiozero import DigitalOutputDevice
+import queue
+import threading
 from time import sleep
 
 import serial
+from gpiozero import DigitalOutputDevice, Servo
 
+import cameraReader
 import communicationHandler
 import hardwarehandler
 import motorController
 import motorsWriter
 import sensorsReader
+from mathUtils import MathUtils
+from pyUSB2FIR.pyusb2fir import usb2fir
+
+
+class CameraFetcher(threading.Thread):
+    def __init__(self, thermal_camera: cameraReader.CameraReader, thermal_queue: queue.Queue):
+        threading.Thread.__init__(self)
+        self._thermal_camera = thermal_camera
+        self._thermal_queue = thermal_queue
+
+    def run(self) -> None:
+        while self.is_alive():
+            ir = self._thermal_camera.read_camera()
+            self._thermal_queue.put(ir)
+            if 0 in ir:
+                print('camera reading failure')
+
 
 
 def robot_data_handler(c):
@@ -73,13 +93,27 @@ def turn(handler: hardwarehandler.HardwareHandler, angle, speed):
             return
 
 
+fan = DigitalOutputDevice(4, False)
+servo = Servo(14)
+
+thermal_camera = usb2fir.USB2FIR(refreshRate=5)
 serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
+
+cam = cameraReader.CameraReader(thermal_camera)
 comm_handler = communicationHandler.CommunicationHandler(serial_port)
+
 sensors_reader = sensorsReader.SensorsReader(comm_handler)
 motors_writer = motorsWriter.MotorsWriter(comm_handler)
+
 hardware_handler: hardwarehandler.HardwareHandler = hardwarehandler.HardwareHandler(sensors_reader, motors_writer)
 
 motors = motorController.MotorController(hardware_handler, 0.05)
+
+thermal_data_queue = queue.Queue()
+
+t = CameraFetcher(cam, thermal_data_queue)
+t.daemon = True
+t.start()
 
 robot_logic_process = multiprocessing.Process(target=robot_data_handler, args=[hardware_handler])
 robot_logic_process.daemon = True
@@ -97,13 +131,54 @@ while True:
     except TypeError:
         continue
 
+    temperatures = thermal_data_queue.get()
+
+    fire_coordinates = cameraReader.CameraReader.is_fire(temperatures, threshold=40)
     sensors_on_line = is_line(light_sensors)
     obstacles = is_obstacle(distance_sensors)
 
     print(sensors_on_line)
     print(obstacles)
 
-    if (0 or 7) in sensors_on_line:
+    if fire_coordinates[0]:
+        print("Fire on: ", fire_coordinates)
+
+        all_fire_angles = cameraReader.CameraReader.coordinates_to_angle(fire_coordinates[1])
+
+        print("Robot needs to turn: ", all_fire_angles)
+
+        max_val = [0, 0, 0]
+        for i in fire_coordinates[1]:
+            if i[2] > max_val[2]:
+                max_val = i
+
+        print("Fire closest to robot: ", max_val)
+        max_fire_angle = cameraReader.CameraReader.coordinates_to_angle(fire_coordinates)
+
+        print("Robot turning: ", max_fire_angle)
+
+        if max_fire_angle[0] > 30 or max_fire_angle[0] < -30:
+            if max_fire_angle[0] > 0:
+                motors.left(base_speed)
+            else:
+                motors.right(base_speed)
+        else:
+            pass
+            motors.slide(max_fire_angle[0] * -1, base_speed)
+
+        if 0 in obstacles:
+            print("Extinguishing")
+            motors.brake()
+            servo_angle = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
+
+            servo.value = servo_angle
+            fan.on()
+            sleep(5)
+            fan.off()
+
+            turned = False
+
+    elif (0 in sensors_on_line) or (7 in sensors_on_line):
         motors.backward(base_speed)
         sleep(0.1)
         turn(hardware_handler, 60, base_speed)
