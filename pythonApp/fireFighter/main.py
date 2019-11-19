@@ -1,10 +1,10 @@
 import multiprocessing
-import queue
 import threading
 from time import sleep
 
 import serial
 from gpiozero import DigitalOutputDevice, Servo
+from pyusb2fir import USB2FIR
 
 import cameraReader
 import communicationHandler
@@ -13,22 +13,19 @@ import motorController
 import motorsWriter
 import sensorsReader
 from mathUtils import MathUtils
-from pyUSB2FIR.pyusb2fir import usb2fir
 
 
 class CameraFetcher(threading.Thread):
-    def __init__(self, thermal_camera: cameraReader.CameraReader, thermal_queue: queue.Queue):
+    def __init__(self, thermal_camera: cameraReader.CameraReader):
         threading.Thread.__init__(self)
         self._thermal_camera = thermal_camera
-        self._thermal_queue = thermal_queue
 
     def run(self) -> None:
         while self.is_alive():
             ir = self._thermal_camera.read_camera()
-            self._thermal_queue.put(ir)
+            print(ir)
             if 0 in ir:
                 print('camera reading failure')
-
 
 
 def robot_data_handler(c):
@@ -96,7 +93,7 @@ def turn(handler: hardwarehandler.HardwareHandler, angle, speed):
 fan = DigitalOutputDevice(4, False)
 servo = Servo(14)
 
-thermal_camera = usb2fir.USB2FIR(refreshRate=5)
+thermal_camera = USB2FIR(refreshRate=5)
 serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
 
 cam = cameraReader.CameraReader(thermal_camera)
@@ -109,9 +106,7 @@ hardware_handler: hardwarehandler.HardwareHandler = hardwarehandler.HardwareHand
 
 motors = motorController.MotorController(hardware_handler, 0.05)
 
-thermal_data_queue = queue.Queue()
-
-t = CameraFetcher(cam, thermal_data_queue)
+t = CameraFetcher(cam)
 t.daemon = True
 t.start()
 
@@ -131,9 +126,7 @@ while True:
     except TypeError:
         continue
 
-    temperatures = thermal_data_queue.get()
-
-    fire_coordinates = cameraReader.CameraReader.is_fire(temperatures, threshold=40)
+    fire_coordinates = cam.is_fire(threshold=40)
     sensors_on_line = is_line(light_sensors)
     obstacles = is_obstacle(distance_sensors)
 
