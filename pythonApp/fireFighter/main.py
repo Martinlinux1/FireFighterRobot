@@ -23,14 +23,9 @@ class CameraFetcher(threading.Thread):
     def run(self) -> None:
         while self.is_alive():
             ir = self._thermal_camera.read_camera()
-            print(ir)
-            if 0 in ir:
-                print('camera reading failure')
-
 
 def robot_data_handler(c):
     while True:
-        print('alive')
         c.update_sensors()
         c.update_motors()
 
@@ -69,13 +64,11 @@ def turn(handler: hardwarehandler.HardwareHandler, angle, speed):
         target_angle = target_angle + 360
 
     while True:
-        print('turning')
         sensors_data = []
         while not sensors_data:
             sensors_data = handler.get_sensors()
         robot_angle = sensors_data[2]
 
-        print(robot_angle)
 
         diff = target_angle - robot_angle
         direction = 180 - (diff + 360) % 360
@@ -140,12 +133,6 @@ while True:
 
         print("Robot needs to turn: ", all_fire_angles)
 
-        max_val = [0, 0, 0]
-        for i in fire_coordinates[1]:
-            if i[2] > max_val[2]:
-                max_val = i
-
-        print("Fire closest to robot: ", max_val)
         max_fire_angle = cameraReader.CameraReader.coordinates_to_angle(fire_coordinates)
 
         print("Robot turning: ", max_fire_angle)
@@ -156,7 +143,6 @@ while True:
             else:
                 motors.right(base_speed)
         else:
-            pass
             motors.slide(max_fire_angle[0] * -1, base_speed)
 
         if 0 in obstacles:

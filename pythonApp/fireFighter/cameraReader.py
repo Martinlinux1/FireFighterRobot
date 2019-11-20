@@ -1,5 +1,7 @@
 import math
 
+import numpy as np
+
 
 class CameraReader:
     def __init__(self, thermal_camera):
@@ -17,29 +19,25 @@ class CameraReader:
         self._thermal_camera.updateFrame(sub_frame_1)
 
         for i in range(768):
-            if i % 2 == 1:
-                self._temperatures[i] = sub_frame_0[i]
-            else:
-                self._temperatures[i] = sub_frame_1[i]
+            try:
+                if i % 2 == 1:
+                    self._temperatures[i] = int(sub_frame_0[i])
+                else:
+                    self._temperatures[i] = int(sub_frame_1[i])
+            except ValueError:
+                pass
 
         return self._temperatures
 
     def is_fire(self, threshold: int):
         fire_positions = []
-        for i in range(768):
-            # print(self._temperatures[i])
-            if i == 0:
-                no_fire_pixels_around = True
-            elif i < 32:
-                no_fire_pixels_around = self._temperatures[i - 1] < threshold
-            else:
-                no_fire_pixels_around = self._temperatures[i - 1] < threshold and self._temperatures[i - 32] < \
-                                        threshold and self._temperatures[i - 33] < threshold
+        max_temp_value = max(self._temperatures)
+        print(max(self._temperatures))
+        if max_temp_value:
+            i = np.argmax(self._temperatures)
+            print(i)
+            fire_positions.append([i % 32, math.floor(i / 32), self._temperatures[i]])
 
-            if self._temperatures[i] >= threshold and no_fire_pixels_around:
-                print(i)
-                fire_positions.append([i % 32, math.floor(i / 32), self._temperatures[i]])
-        if fire_positions:
             return True, fire_positions
         else:
             return False, -1
