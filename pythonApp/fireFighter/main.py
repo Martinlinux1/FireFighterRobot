@@ -1,6 +1,5 @@
 import multiprocessing
 import queue
-import threading
 from time import sleep, time
 
 import serial
@@ -16,14 +15,15 @@ import sensorsReader
 from mathUtils import MathUtils
 
 
-class CameraFetcher(threading.Thread):
-    def __init__(self, thermal_camera: cameraReader.CameraReader):
-        threading.Thread.__init__(self)
-        self._thermal_camera = thermal_camera
+class CameraFetcher(multiprocessing.Process):
+    def __init__(self, thermal_cam: cameraReader.CameraReader):
+        super().__init__()
+        self._thermal_camera = thermal_cam
 
     def run(self) -> None:
         while self.is_alive():
             ir = self._thermal_camera.read_camera()
+            print(ir)
 
 
 def robot_data_handler(c):
@@ -113,8 +113,6 @@ def find_fire(fire_coord):
             fan.on()
             sleep(5)
             fan.off()
-
-            turned = False
 
         return True
 
@@ -269,9 +267,9 @@ motors = motorController.MotorController(hardware_handler, 0.05)
 
 line_history = queue.Queue()
 
-# t = CameraFetcher(cam)
-# t.daemon = True
-# t.start()
+t = CameraFetcher(cam)
+t.daemon = True
+t.start()
 
 robot_logic_process = multiprocessing.Process(target=robot_data_handler, args=[hardware_handler])
 robot_logic_process.daemon = True
