@@ -12,9 +12,8 @@ import hardwarehandler
 import motorController
 import motorsWriter
 import sensorsReader
-
-from mathUtils import MathUtils
 from firefinder import FireFinder
+from mathUtils import MathUtils
 
 
 def read_camera(cam_reader: cameraReader.CameraReader):
@@ -62,6 +61,10 @@ def turn(handler: hardwarehandler.HardwareHandler, angle, speed):
     target_angle = robot_angle + angle
     target_angle = target_angle % 360
 
+    print(robot_angle)
+    print(angle)
+    print(target_angle)
+
     if target_angle < 0:
         target_angle = target_angle + 360
 
@@ -85,7 +88,7 @@ def turn(handler: hardwarehandler.HardwareHandler, angle, speed):
 
 
 # Finds fire and takes action.
-def find_fire(fire_coord, obstacles_detected):
+def find_fire(fire_coord, line_detected):
     if fire_coord[0]:
         print("Fire on: ", fire_coordinates)
 
@@ -105,7 +108,7 @@ def find_fire(fire_coord, obstacles_detected):
         else:
             motors.slide(max_fire_angle[0] * -1, base_speed)
 
-        if 0 in obstacles_detected:
+        if 0 in line_detected:
             print("Extinguishing")
             motors.brake()
             servo_angle = MathUtils.valmap(max_fire_angle[1], -90, 90, -1, 1)
@@ -117,13 +120,16 @@ def find_fire(fire_coord, obstacles_detected):
 
             motors.backward(base_speed)
             sleep(1)
+            print('Turning started')
             turn(hardware_handler, 135, base_speed)
 
             print('Extinguishing done.')
 
-        return True
+            return True, True
 
-    return False
+        return True, False
+
+    return False, False
 
 
 # Avoids lines.
@@ -305,7 +311,12 @@ while True:
     print(obstacles)
     print(fire_coordinates)
 
-    is_fire = find_fire(fire_coordinates, obstacles)
+    is_fire, extinguished = find_fire(fire_coordinates, sensors_on_line)
+
+    if extinguished:
+        motors.forward(base_speed)
+        continue
+
     any_line = avoid_line(sensors_on_line)
     are_obstacles = avoid_obstacle(obstacles)
 
