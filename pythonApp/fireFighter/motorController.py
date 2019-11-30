@@ -139,12 +139,9 @@ class MotorController:
 
     """Stops all motors."""
     def brake(self):
-        # self._communicationHandler.write_motor('A', 'F', 255)
-        # self._communicationHandler.write_motor('B', 'F', 255)
-        # self._communicationHandler.write_motor('C', 'F', 255)
-        # self._communicationHandler.write_motor('D', 'F', 255)
-        # sleep(self._brake_delay)
         self._handler.set_motor('A', 'F', 0)
         self._handler.set_motor('B', 'F', 0)
         self._handler.set_motor('C', 'F', 0)
         self._handler.set_motor('D', 'F', 0)
+
+        self._handler.write_motors()

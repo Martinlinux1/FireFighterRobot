@@ -2,11 +2,10 @@ import math
 
 
 class FireFinder:
-
     @staticmethod
     def is_fire(temperatures, threshold: int):
         fire_positions = []
-        for i in range(768):
+        for i in range(len(temperatures)):
             # print(self._temperatures[i])
             if i == 0:
                 no_fire_pixels_around = True
@@ -17,7 +16,6 @@ class FireFinder:
                                         threshold and temperatures[i - 33] < threshold
 
             if temperatures[i] >= threshold and no_fire_pixels_around:
-                print(i)
                 fire_positions.append([i % 32, math.floor(i / 32), temperatures[i]])
         if fire_positions:
             return True, fire_positions
@@ -36,21 +34,12 @@ class FireFinder:
     def coordinates_to_angle(fire_coordinates):
         fire_angles = []
 
-        if isinstance(fire_coordinates[0], list):
-            for i in fire_coordinates:
-                angle_horizontal = (i[0] * (120 / 32) - 120 / 2)
+        if isinstance(fire_coordinates, list):
+            angle_horizontal = (fire_coordinates[0] * (120 / 32) - 120 / 2)
 
-                angle_vertical = i[1] * (75 / 24) - 15
-
-                fire_angles.append([angle_horizontal, angle_vertical])
-
-            return fire_angles
-        else:
-            angle_horizontal = fire_coordinates[1][0][0] * (120 / 32) - 120 / 2
-
-            angle_vertical = fire_coordinates[1][0][1] * (75 / 24) - 75 / 2
+            angle_vertical = (fire_coordinates[1] * (75 / 24) - 15)
 
             fire_angles.append(angle_horizontal)
             fire_angles.append(angle_vertical)
-
             return fire_angles
+

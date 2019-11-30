@@ -25,9 +25,7 @@ class CameraReader:
             elif sub_frame_1[i] == 0:
                 frame[i] = sub_frame_0[i]
 
-        temperatures = frame.reshape((24, 32))[:, ::-1]
-
-        self._temp_data_pipe_writer.send(temperatures)
+        self._temp_data_pipe_writer.send(frame)
 
     def get_camera_data(self):
         if self._temp_data_pipe_reader.poll():

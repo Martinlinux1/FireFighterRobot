@@ -9,5 +9,5 @@ setup(
     author='robomaze',
     author_email='martin.robomaze@yandex.com',
     description='',
-    install_requires=['pyserial', 'gpiozero']
+    install_requires=['pyserial', 'gpiozero', 'numpy']
 )

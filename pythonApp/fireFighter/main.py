@@ -12,26 +12,24 @@ import hardwarehandler
 import motorController
 import motorsWriter
 import sensorsReader
+
 from mathUtils import MathUtils
+from firefinder import FireFinder
 
 
-class CameraFetcher(multiprocessing.Process):
-    def __init__(self, thermal_cam: cameraReader.CameraReader):
-        super().__init__()
-        self._thermal_camera = thermal_cam
-
-    def run(self) -> None:
-        while self.is_alive():
-            ir = self._thermal_camera.read_camera()
-            print(ir)
+def read_camera(cam_reader: cameraReader.CameraReader):
+    while True:
+        cam_reader.update_camera_data()
 
 
+# Updating robot data.
 def robot_data_handler(c):
     while True:
         c.update_sensors()
         c.update_motors()
 
 
+# Is line present on any line sensor.
 def is_line(line_sensors_data):
     on_line_sensors = []
     for i in range(8):
@@ -41,6 +39,7 @@ def is_line(line_sensors_data):
     return on_line_sensors
 
 
+# Is obstacle present on any obstacle sensor.
 def is_obstacle(distance_sensors_data):
     sensors_detected = []
 
@@ -51,6 +50,7 @@ def is_obstacle(distance_sensors_data):
     return sensors_detected
 
 
+# Turn robot by a given angle.
 def turn(handler: hardwarehandler.HardwareHandler, angle, speed):
     sensors_data = []
 
@@ -84,15 +84,16 @@ def turn(handler: hardwarehandler.HardwareHandler, angle, speed):
             return
 
 
-def find_fire(fire_coord):
+# Finds fire and takes action.
+def find_fire(fire_coord, obstacles_detected):
     if fire_coord[0]:
         print("Fire on: ", fire_coordinates)
 
-        all_fire_angles = cameraReader.CameraReader.coordinates_to_angle(fire_coordinates[1])
+        max_fire_coordinates = FireFinder.max_fire(fire_coord)
 
-        print("Robot needs to turn: ", all_fire_angles)
+        print("Max fire: ", max_fire_coordinates)
 
-        max_fire_angle = cameraReader.CameraReader.coordinates_to_angle(fire_coordinates)
+        max_fire_angle = FireFinder.coordinates_to_angle(max_fire_coordinates)
 
         print("Robot turning: ", max_fire_angle)
 
@@ -104,21 +105,28 @@ def find_fire(fire_coord):
         else:
             motors.slide(max_fire_angle[0] * -1, base_speed)
 
-        if 0 in obstacles:
+        if 0 in obstacles_detected:
             print("Extinguishing")
             motors.brake()
-            servo_angle = MathUtils.valmap(max_fire_angle[1], -40, 40, -1, 1)
+            servo_angle = MathUtils.valmap(max_fire_angle[1], -90, 90, -1, 1)
 
             servo.value = servo_angle
             fan.on()
             sleep(5)
             fan.off()
 
+            motors.backward(base_speed)
+            sleep(1)
+            turn(hardware_handler, 135, base_speed)
+
+            print('Extinguishing done.')
+
         return True
 
     return False
 
 
+# Avoids lines.
 def avoid_line(sensors_line):
     if not line_history.empty():
         previous_line = line_history.get()
@@ -160,37 +168,37 @@ def avoid_line(sensors_line):
     # Detection of line in specific situations.
     if 6 in sensors_line and 5 in sensors_line and 4 in sensors_line:  # Left downer corner.
         motors.slide(45, base_speed)
-        sleep(0.5)
+        sleep(0.1)
         turn(hardware_handler, 45, base_speed)
         return True
 
     elif 2 in sensors_line and 3 in sensors_line and 4 in sensors_line:  # Right downer corner.
         motors.slide(-45, base_speed)
-        sleep(0.5)
+        sleep(0.1)
         turn(hardware_handler, -45, base_speed)
         return True
 
     elif 0 in sensors_line and 7 in sensors_line and 6 in sensors_line:  # Left upper corner.
         motors.slide(135, base_speed)
-        sleep(0.5)
+        sleep(0.1)
         turn(hardware_handler, 135, base_speed)
         return True
 
     elif 0 in sensors_line and 1 in sensors_line and 2 in sensors_line:  # Right upper corner.
         motors.slide(-135, base_speed)
-        sleep(0.5)
+        sleep(0.1)
         turn(hardware_handler, -135, base_speed)
         return True
 
     elif 6 in sensors_line and (7 in sensors_line or 5 in sensors_line):  # Line on the left.
         motors.slide(90, base_speed)
-        sleep(0.5)
+        sleep(0.1)
         turn(hardware_handler, 90, base_speed)
         return True
 
     elif 0 in sensors_line and (7 in sensors_line or 1 in sensors_line):  # Line on the right.
         motors.slide(-90, base_speed)
-        sleep(0.5)
+        sleep(0.1)
         turn(hardware_handler, -90, base_speed)
         return True
 
@@ -200,7 +208,7 @@ def avoid_line(sensors_line):
 
     elif 2 in sensors_line and (1 in sensors_line or 3 in sensors_line):  # Line on the front.
         motors.backward(base_speed)
-        sleep(0.5)
+        sleep(0.1)
         turn(hardware_handler, 180, base_speed)
         return True
 
@@ -225,6 +233,7 @@ def avoid_line(sensors_line):
     return False
 
 
+# Avoids obstacles.
 def avoid_obstacle(obstacles_detected):
     if 0 in obstacles_detected:
         motors.backward(base_speed)
@@ -252,7 +261,7 @@ def avoid_obstacle(obstacles_detected):
 fan = DigitalOutputDevice(4, False)
 servo = Servo(14)
 
-thermal_camera = USB2FIR(refreshRate=5)
+thermal_camera = USB2FIR(refreshRate=4)
 serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
 
 cam = cameraReader.CameraReader(thermal_camera)
@@ -267,9 +276,9 @@ motors = motorController.MotorController(hardware_handler, 0.05)
 
 line_history = queue.Queue()
 
-t = CameraFetcher(cam)
-t.daemon = True
-t.start()
+camera_reading_process = multiprocessing.Process(target=read_camera, args=[cam])
+camera_reading_process.daemon = True
+camera_reading_process.start()
 
 robot_logic_process = multiprocessing.Process(target=robot_data_handler, args=[hardware_handler])
 robot_logic_process.daemon = True
@@ -279,6 +288,7 @@ base_speed = 100
 
 while True:
     sensors = hardware_handler.get_sensors()
+    temperatures = cam.get_camera_data()
 
     try:
         light_sensors = sensors[0]
@@ -287,7 +297,7 @@ while True:
     except TypeError:
         continue
 
-    fire_coordinates = cam.is_fire(threshold=40)
+    fire_coordinates = FireFinder.is_fire(temperatures, threshold=40)
     sensors_on_line = is_line(light_sensors)
     obstacles = is_obstacle(distance_sensors)
 
@@ -295,9 +305,9 @@ while True:
     print(obstacles)
     print(fire_coordinates)
 
-    # is_fire = find_fire(fire_coordinates)
+    is_fire = find_fire(fire_coordinates, obstacles)
     any_line = avoid_line(sensors_on_line)
     are_obstacles = avoid_obstacle(obstacles)
 
-    if (not any_line) and (not are_obstacles):
+    if (not is_fire) and (not any_line) and (not are_obstacles):
         motors.forward(base_speed)
