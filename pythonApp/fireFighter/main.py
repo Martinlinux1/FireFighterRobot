@@ -321,6 +321,10 @@ robot_data_updater = multiprocessing.Process(target=robot_data_handler, args=[ha
 robot_data_updater.daemon = True
 robot_data_updater.start()
 
+fire_detected_event = multiprocessing.Event()
+line_detected_event = multiprocessing.Event()
+obstacle_detected_event = multiprocessing.Event()
+
 fire_finder = multiprocessing.Process(target=find_fire, args=[cam, hardware_handler], daemon=True)
 line_avoid = multiprocessing.Process(target=avoid_line, args=[hardware_handler], daemon=True)
 obstacle_avoid = multiprocessing.Process(target=avoid_obstacle, args=[hardware_handler], daemon=True)
@@ -328,7 +332,6 @@ obstacle_avoid = multiprocessing.Process(target=avoid_obstacle, args=[hardware_h
 fire_finder.start()
 line_avoid.start()
 obstacle_avoid.start()
-
 
 camera_reading_process.join()
 robot_data_updater.join()
