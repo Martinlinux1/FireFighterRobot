@@ -1,3 +1,4 @@
+import _queue
 from multiprocessing import Queue, Event
 
 import numpy as np
@@ -39,15 +40,19 @@ class HardwareHandler:
             self._sensors_queue.put_nowait([self._light_sensors, self._distance_sensors, self._imu_sensor])
 
     def get_sensors(self):
-        if not self._sensors_queue.empty():
+        try:
             self._sensors = self._sensors_queue.get_nowait()
             self._sensors_read_event.set()
 
             return self._sensors
+        except _queue.Empty:
+            return
 
     def update_motors(self):
-        if not self._motors_queue.empty():
+        try:
             self._motors = self._motors_queue.get_nowait()
+        except _queue.Empty:
+            pass
 
         if self._motors[0]:
             self._motor_writer.write_motor('A', self._motors[0][0], self._motors[0][1])

@@ -95,6 +95,8 @@ def turn(handler: hardwarehandler.HardwareHandler, angle, speed):
 
 
 def extinguish_fire(fire_coord, line_detected, obstacles_detected):
+    global base_speed
+
     if fire_coord[0]:
         max_fire_angle = find_max_fire(fire_coord)
 
@@ -122,12 +124,15 @@ def extinguish_fire(fire_coord, line_detected, obstacles_detected):
 
 # Finds fire and takes action.
 def find_fire(camera, handler_hardware):
+    global base_speed
+
     line_sensors = []
     obstacle_sensors = []
 
     while True:
         fire_data = camera.get_camera_data()
-        fire_coord = FireFinder.is_fire(fire_data, threshold=35)
+        print(fire_data)
+        fire_coord = FireFinder.is_fire(fire_data, threshold=40)
 
         sensors_data = handler_hardware.get_sensors()
 
@@ -154,6 +159,8 @@ def find_fire(camera, handler_hardware):
 
 # Avoids lines.
 def avoid_line(handler_hardware):
+    global base_speed
+
     line_history = queue.Queue()
     sensors_line = []
 
@@ -261,6 +268,8 @@ def avoid_line(handler_hardware):
 
 # Avoids obstacles.
 def avoid_obstacle(handler_hardware):
+    global base_speed
+
     obstacles_detected = []
     while True:
         sensors_data = handler_hardware.get_sensors()
@@ -286,10 +295,12 @@ def avoid_obstacle(handler_hardware):
             turn(hardware_handler, 45, base_speed)
 
 
+base_speed = 100
+
 fan = DigitalOutputDevice(4, False)
 servo = Servo(14)
 
-thermal_camera = USB2FIR(refreshRate=4)
+thermal_camera = USB2FIR()
 serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
 
 cam = cameraReader.CameraReader(thermal_camera)
@@ -318,7 +329,6 @@ fire_finder.start()
 line_avoid.start()
 obstacle_avoid.start()
 
-base_speed = 100
 
 camera_reading_process.join()
 robot_data_updater.join()
