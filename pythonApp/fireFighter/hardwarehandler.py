@@ -1,4 +1,4 @@
-from multiprocessing import Pipe, Event
+from multiprocessing import Queue, Event
 
 import numpy as np
 
@@ -8,8 +8,8 @@ class HardwareHandler:
         self._sensors_reader = sensors_reader
         self._motor_writer = motor_writer
 
-        self._sensors_pipe_reader, self._sensors_pipe_writer = Pipe(duplex=False)
-        self._motors_pipe_reader, self._motors_pipe_writer = Pipe(duplex=False)
+        self._sensors_queue = Queue()
+        self._motors_queue = Queue()
 
         self._sensors_read_event = Event()
 
@@ -36,18 +36,18 @@ class HardwareHandler:
             self._distance_sensors = sensors_data[1][1]
             self._imu_sensor = sensors_data[2][1]
 
-            self._sensors_pipe_writer.send([self._light_sensors, self._distance_sensors, self._imu_sensor])
+            self._sensors_queue.put_nowait([self._light_sensors, self._distance_sensors, self._imu_sensor])
 
     def get_sensors(self):
-        if self._sensors_pipe_reader.poll():
-            self._sensors = self._sensors_pipe_reader.recv()
+        if not self._sensors_queue.empty():
+            self._sensors = self._sensors_queue.get_nowait()
             self._sensors_read_event.set()
 
             return self._sensors
 
     def update_motors(self):
-        if self._motors_pipe_reader.poll():
-            self._motors = self._motors_pipe_reader.recv()
+        if not self._motors_queue.empty():
+            self._motors = self._motors_queue.get_nowait()
 
         if self._motors[0]:
             self._motor_writer.write_motor('A', self._motors[0][0], self._motors[0][1])
@@ -69,4 +69,4 @@ class HardwareHandler:
             self._motorD = [direction, speed]
 
     def write_motors(self):
-        self._motors_pipe_writer.send([self._motorA, self._motorB, self._motorC, self._motorD])
+        self._motors_queue.put_nowait([self._motorA, self._motorB, self._motorC, self._motorD])
