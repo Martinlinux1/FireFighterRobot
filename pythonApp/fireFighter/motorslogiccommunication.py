@@ -3,13 +3,13 @@ from multiprocessing import Pipe
 
 class MotorsLogicCommunication:
     def __init__(self, new_data_event):
-        self.forward = 'F'
-        self.backward = 'B'
-        self.turn = 'T'
-        self.slide = 'S'
-        self.left = 'L'
-        self.right = 'R'
-        self.brake = 'C'
+        self.fwd = 'F'
+        self.bck = 'B'
+        self.trn = 'T'
+        self.sld = 'S'
+        self.l = 'L'
+        self.r = 'R'
+        self.stop = 'C'
 
         self._motors_data = []
         self._new_data_event = new_data_event

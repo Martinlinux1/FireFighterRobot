@@ -25,9 +25,12 @@ class FireFinder:
     @staticmethod
     def max_fire(fire_coordinates):
         max_val = [0, 0, 0]
-        for i in fire_coordinates[1]:
-            if i[2] > max_val[2]:
-                max_val = i
+        try:
+            for i in fire_coordinates[1]:
+                if i[2] > max_val[2]:
+                    max_val = i
+        except TypeError:
+            return [0, 0, 0]
         return max_val
 
     @staticmethod

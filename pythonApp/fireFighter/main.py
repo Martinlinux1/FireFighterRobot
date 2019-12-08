@@ -35,19 +35,19 @@ def motor_logic_process(motors_logic: MotorsLogicCommunication, motors_contr: mo
         if motors_logic.data_available():
             data = motors_logic.get_data()
 
-            if data[0] == motors_logic.forward:
+            if data[0] == motors_logic.fwd:
                 motors_contr.forward(data[1])
-            elif data[0] == motors_logic.backward:
+            elif data[0] == motors_logic.bck:
                 motors_contr.backward(data[1])
-            elif data[0] == motors_logic.turn:
+            elif data[0] == motors_logic.trn:
                 motors_contr.turn(data[1], data[2], new_data_event)
-            elif data[0] == motors_logic.slide:
+            elif data[0] == motors_logic.sld:
                 motors_contr.slide(data[1], data[2])
-            elif data[0] == motors_logic.left:
+            elif data[0] == motors_logic.l:
                 motors_contr.left(data[1])
-            elif data[0] == motors_logic.right:
+            elif data[0] == motors_logic.r:
                 motors_contr.right(data[1])
-            elif data[0] == motors_logic.brake:
+            elif data[0] == motors_logic.stop:
                 motors_contr.brake()
 
 
@@ -300,10 +300,11 @@ motors_logic_process = multiprocessing.Process(target=motor_logic_process,
                                                args=[motors, motors_controller, new_motor_data_event])
 
 base_speed = 100
-
 while True:
     sensors = hardware_handler.get_sensors()
     temperatures = cam.get_camera_data()
+
+    print(temperatures)
 
     try:
         light_sensors = sensors[0]
@@ -320,11 +321,7 @@ while True:
     print(obstacles)
     print(fire_coordinates)
 
-    is_fire, extinguished = find_fire(fire_coordinates, sensors_on_line, obstacles)
-
-    if extinguished:
-        motors.forward(base_speed)
-        continue
+    is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
 
     any_line = avoid_line(fire_coordinates, sensors_on_line, obstacles)
     are_obstacles = avoid_obstacle(fire_coordinates, sensors_on_line, obstacles)
