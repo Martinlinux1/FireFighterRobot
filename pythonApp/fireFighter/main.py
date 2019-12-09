@@ -3,7 +3,7 @@ import queue
 from time import sleep, time
 
 import serial
-from gpiozero import DigitalOutputDevice, Servo
+# from gpiozero import DigitalOutputDevice, Servo
 from pyusb2fir import USB2FIR
 
 import cameraReader
@@ -35,19 +35,19 @@ def motor_logic_process(motors_logic: MotorsLogicCommunication, motors_contr: mo
         if motors_logic.data_available():
             data = motors_logic.get_data()
 
-            if data[0] == motors_logic.forward:
+            if data[0] == motors_logic.forward_char:
                 motors_contr.forward(data[1])
-            elif data[0] == motors_logic.backward:
+            elif data[0] == motors_logic.backward_char:
                 motors_contr.backward(data[1])
-            elif data[0] == motors_logic.turn:
+            elif data[0] == motors_logic.turn_char:
                 motors_contr.turn(data[1], data[2], new_data_event)
-            elif data[0] == motors_logic.slide:
+            elif data[0] == motors_logic.slide_char:
                 motors_contr.slide(data[1], data[2])
-            elif data[0] == motors_logic.left:
+            elif data[0] == motors_logic.left_char:
                 motors_contr.left(data[1])
-            elif data[0] == motors_logic.right:
+            elif data[0] == motors_logic.right_char:
                 motors_contr.right(data[1])
-            elif data[0] == motors_logic.brake:
+            elif data[0] == motors_logic.brake_char:
                 motors_contr.brake()
 
 
@@ -80,6 +80,9 @@ def is_obstacle(distance_sensors_data):
 
 
 def extinguish_fire(fire_coord, line_detected, obstacles_detected):
+    if not fire_coord[0]:
+        return False
+
     max_fire_angle = find_max_fire(fire_coord)
 
     if max_fire_angle[0] in range(-15, 15) and 0 in line_detected and 0 in obstacles_detected:
@@ -266,10 +269,10 @@ def avoid_obstacle(fire_coord, sensors_line, obstacles_detected):
     return False
 
 
-fan = DigitalOutputDevice(4, False)
-servo = Servo(14)
+# fan = DigitalOutputDevice(4, False)
+# servo = Servo(14)
 
-thermal_camera = USB2FIR(refreshRate=4)
+thermal_camera = USB2FIR()
 serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
 
 cam = cameraReader.CameraReader(thermal_camera)
@@ -298,6 +301,8 @@ hardware_interface_process.start()
 
 motors_logic_process = multiprocessing.Process(target=motor_logic_process,
                                                args=[motors, motors_controller, new_motor_data_event])
+motors_logic_process.daemon = True
+motors_logic_process.start()
 
 base_speed = 100
 
@@ -320,11 +325,7 @@ while True:
     print(obstacles)
     print(fire_coordinates)
 
-    is_fire, extinguished = find_fire(fire_coordinates, sensors_on_line, obstacles)
-
-    if extinguished:
-        motors.forward(base_speed)
-        continue
+    is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
 
     any_line = avoid_line(fire_coordinates, sensors_on_line, obstacles)
     are_obstacles = avoid_obstacle(fire_coordinates, sensors_on_line, obstacles)
