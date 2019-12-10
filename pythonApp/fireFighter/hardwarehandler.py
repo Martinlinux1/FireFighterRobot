@@ -1,6 +1,7 @@
 from multiprocessing import Pipe, Event
 
 import numpy as np
+import zmq
 
 
 class HardwareHandler:
@@ -8,7 +9,16 @@ class HardwareHandler:
         self._sensors_reader = sensors_reader
         self._motor_writer = motor_writer
 
-        self._sensors_pipe_reader, self._sensors_pipe_writer = Pipe(duplex=False)
+        self._port = "5556"
+        self._context_server = zmq.Context()
+        self._context_client = zmq.Context()
+
+        self._socket_server = self._context_server.socket(zmq.PAIR)
+        self._socket_client = self._context_client.socket(zmq.PAIR)
+
+        self._socket_server.bind("tcp://*:%s" % self._port)
+        self._socket_client.bind("tcp://*:%s" % self._port)
+
         self._motors_pipe_reader, self._motors_pipe_writer = Pipe(duplex=False)
 
         self._sensors_read_event = Event()
@@ -29,21 +39,18 @@ class HardwareHandler:
 
     def update_sensors(self):
         if self._sensors_read_event.is_set():
-            self._sensors_read_event.clear()
             sensors_data = self._sensors_reader.get_sensors_data()
 
             self._light_sensors = sensors_data[0][1]
             self._distance_sensors = sensors_data[1][1]
             self._imu_sensor = sensors_data[2][1]
 
-            self._sensors_pipe_writer.send([self._light_sensors, self._distance_sensors, self._imu_sensor])
+            self._socket_server.send([self._light_sensors, self._distance_sensors, self._imu_sensor])
 
     def get_sensors(self):
-        if self._sensors_pipe_reader.poll():
-            self._sensors = self._sensors_pipe_reader.recv()
-            self._sensors_read_event.set()
+        self._sensors = self._socket_client.recv()
 
-            return self._sensors
+        return self._sensors
 
     def update_motors(self):
         if self._motors_pipe_reader.poll():

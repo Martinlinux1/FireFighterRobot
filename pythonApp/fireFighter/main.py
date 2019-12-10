@@ -3,7 +3,7 @@ import queue
 from time import sleep, time
 
 import serial
-# from gpiozero import DigitalOutputDevice, Servo
+from gpiozero import DigitalOutputDevice, Servo
 from pyusb2fir import USB2FIR
 
 import cameraReader
@@ -269,8 +269,8 @@ def avoid_obstacle(fire_coord, sensors_line, obstacles_detected):
     return False
 
 
-# fan = DigitalOutputDevice(4, False)
-# servo = Servo(14)
+fan = DigitalOutputDevice(4, False)
+servo = Servo(14)
 
 thermal_camera = USB2FIR()
 serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
