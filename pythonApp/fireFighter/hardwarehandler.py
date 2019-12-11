@@ -9,15 +9,12 @@ class HardwareHandler:
         self._sensors_reader = sensors_reader
         self._motor_writer = motor_writer
 
-        self._port = "5556"
+        self._port = "8080"
         self._context_server = zmq.Context()
         self._context_client = zmq.Context()
 
-        self._socket_server = self._context_server.socket(zmq.PAIR)
-        self._socket_client = self._context_client.socket(zmq.PAIR)
-
-        self._socket_server.bind("tcp://*:%s" % self._port)
-        self._socket_client.bind("tcp://*:%s" % self._port)
+        self._socket_main_process = self._context_server.socket(zmq.PAIR)
+        self._socket_sensors_process = self._context_client.socket(zmq.PAIR)
 
         self._motors_pipe_reader, self._motors_pipe_writer = Pipe(duplex=False)
 
@@ -38,6 +35,7 @@ class HardwareHandler:
         self._motorD = []
 
     def update_sensors(self):
+        self._socket_main_process.bind("tcp://*:5555")
         if self._sensors_read_event.is_set():
             sensors_data = self._sensors_reader.get_sensors_data()
 
@@ -45,11 +43,13 @@ class HardwareHandler:
             self._distance_sensors = sensors_data[1][1]
             self._imu_sensor = sensors_data[2][1]
 
-            self._socket_server.send([self._light_sensors, self._distance_sensors, self._imu_sensor])
+            self._socket_main_process.send([self._light_sensors, self._distance_sensors, self._imu_sensor])
+        self._socket_main_process.close()
 
     def get_sensors(self):
-        self._sensors = self._socket_client.recv()
-
+        self._socket_sensors_process.bind("tcp://*:5555")
+        self._sensors = self._socket_sensors_process.recv()
+        self._socket_sensors_process.close()
         return self._sensors
 
     def update_motors(self):
