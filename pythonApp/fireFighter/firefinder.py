@@ -24,11 +24,13 @@ class FireFinder:
 
     @staticmethod
     def max_fire(fire_coordinates):
-        max_val = [0, 0, 0]
-        for i in fire_coordinates[1]:
-            if i[2] > max_val[2]:
-                max_val = i
-        return max_val
+        if fire_coordinates[0]:
+            max_val = [0, 0, 0]
+            for i in fire_coordinates[1]:
+                if i[2] > max_val[2]:
+                    max_val = i
+            return max_val
+        return [-1, -1, -1]
 
     @staticmethod
     def coordinates_to_angle(fire_coordinates):

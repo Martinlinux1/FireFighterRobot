@@ -8,6 +8,9 @@ class CameraReader:
         self._thermal_camera = thermal_camera
 
         self._temp_data_pipe_reader, self._temp_data_pipe_writer = multiprocessing.Pipe(duplex=False)
+        self._camera_read_event = multiprocessing.Event()
+
+        self._camera_read_event.set()
 
         self._temperatures = []
 
@@ -25,10 +28,14 @@ class CameraReader:
             elif sub_frame_1[i] == 0:
                 frame[i] = sub_frame_0[i]
 
-        self._temp_data_pipe_writer.send(frame)
+        if self._camera_read_event.is_set():
+            self._camera_read_event.clear()
+            print('sending frame')
+            self._temp_data_pipe_writer.send(frame)
 
     def get_camera_data(self):
         if self._temp_data_pipe_reader.poll():
+            self._camera_read_event.set()
             self._temperatures = self._temp_data_pipe_reader.recv()
 
         return self._temperatures

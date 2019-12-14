@@ -89,7 +89,7 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
             while not extinguish_fire(fire_coord, sensors_line, obstacles_detected):
                 sens = hardware_handler.get_sensors()
                 temps = cam.get_camera_data()
-
+                print(temps)
                 try:
                     l_sensors = sens[0]
                     d_sensors = sens[1]
@@ -97,6 +97,7 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
                     continue
 
                 fire_coord = FireFinder.is_fire(temps, threshold=40)
+                print(fire_coord)
                 sensors_line = is_line(l_sensors)
                 obstacles_detected = is_obstacle(d_sensors)
 
@@ -105,10 +106,11 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
                 print("Robot turning: ", max_fire_angle)
 
                 if max_fire_angle[0] > 20 or max_fire_angle[0] < -20:
-                    motors.turn(max_fire_angle[0], base_speed - 20)
+                    motors.turn(max_fire_angle[0] * -1, base_speed - 20)
                 else:
                     motors.slide(max_fire_angle[0] * -1, base_speed)
 
+            print('fire extinguished')
             return True
 
     return False
