@@ -141,6 +141,7 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
             motors.backward(base_speed)
             sleep(0.1)
             motors.turn(-90, base_speed)
+            sleep(0.1)
             line_history.put([1, time()])
             return True
 
@@ -148,6 +149,7 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
             motors.backward(base_speed)
             sleep(0.1)
             motors.turn(90, base_speed)
+            sleep(0.1)
             line_history.put([7, time()])
             return True
 
@@ -156,7 +158,7 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
             motors.backward(base_speed)
             sleep(0.1)
             motors.turn(60, base_speed)
-
+            sleep(0.1)
             line_history.put([7, time()])
             return True
 
@@ -164,7 +166,7 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
             motors.backward(base_speed)
             sleep(0.1)
             motors.turn(-60, base_speed)
-
+            sleep(0.1)
             line_history.put([1, time()])
             return True
 
@@ -172,7 +174,7 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
             motors.backward(base_speed)
             sleep(0.1)
             motors.turn(-60, base_speed)
-
+            sleep(0.1)
             line_history.put([1, time()])
 
         # Detection of line in specific situations.
@@ -180,12 +182,14 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
             motors.slide(45, base_speed)
             sleep(0.1)
             motors.turn(45, base_speed)
+            sleep(0.1)
             return True
 
         elif 2 in sensors_line and 3 in sensors_line and 4 in sensors_line:  # Right downer corner.
             motors.slide(-45, base_speed)
             sleep(0.1)
             motors.turn(-45, base_speed)
+            sleep(0.1)
             return True
 
         elif 0 in sensors_line and 7 in sensors_line and 6 in sensors_line:  # Left upper corner.
@@ -198,28 +202,33 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
             motors.slide(-135, base_speed)
             sleep(0.1)
             motors.turn(-135, base_speed)
+            sleep(0.1)
             return True
 
         elif 6 in sensors_line and (7 in sensors_line or 5 in sensors_line):  # Line on the left.
             motors.slide(90, base_speed)
             sleep(0.1)
             motors.turn(90, base_speed)
+            sleep(0.1)
             return True
 
         elif 0 in sensors_line and (7 in sensors_line or 1 in sensors_line):  # Line on the right.
             motors.slide(-90, base_speed)
             sleep(0.1)
             motors.turn(-90, base_speed)
+            sleep(0.1)
             return True
 
         elif 4 in sensors_line and (5 in sensors_line or 3 in sensors_line):  # Line on the back.
             motors.forward(base_speed)
+            sleep(0.1)
             return True
 
         elif 2 in sensors_line and (1 in sensors_line or 3 in sensors_line):  # Line on the front.
             motors.backward(base_speed)
             sleep(0.1)
             motors.turn(180, base_speed)
+            sleep(0.1)
             return True
 
         # Normal sensors_line detection and avoiding.
@@ -227,7 +236,7 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
             motors.backward(base_speed)
             sleep(0.1)
             motors.turn(60, base_speed)
-
+            sleep(0.1)
             line_history.put([7, time()])
             return True
 
@@ -235,7 +244,7 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
             motors.backward(base_speed)
             sleep(0.1)
             motors.turn(-60, base_speed)
-
+            sleep(0.1)
             line_history.put([1, time()])
             return True
 
@@ -250,18 +259,21 @@ def avoid_obstacle(fire_coord, sensors_line, obstacles_detected):
             motors.backward(base_speed)
             sleep(0.1)
             motors.turn(-90, base_speed)
+            sleep(0.1)
 
             return True
         elif 1 in obstacles:
             motors.backward(base_speed)
             sleep(0.1)
             motors.turn(-45, base_speed)
+            sleep(0.1)
 
             return True
         elif 3 in obstacles:
             motors.backward(base_speed)
             sleep(0.1)
             motors.turn(45, base_speed)
+            sleep(0.1)
 
             return True
 
@@ -288,7 +300,6 @@ new_motor_data_event = multiprocessing.Event()
 motors_controller = motorController.MotorController(hardware_handler, 0.05)
 
 motors = MotorsLogicCommunication(new_motor_data_event)
-
 line_history = queue.Queue()
 
 camera_reading_process = multiprocessing.Process(target=read_camera, args=[cam])

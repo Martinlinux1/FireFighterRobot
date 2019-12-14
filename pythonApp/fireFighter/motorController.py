@@ -98,11 +98,11 @@ class MotorController:
 
     """Turns the robot to a given angle"""
 
-    def turn(self, angle: float, speed: int, new_data_event):
+    def turn(self, angle: float, speed: int, new_data_event, sensors_event):
         sensors_data = []
 
         while not sensors_data:
-            sensors_data = self._handler.get_sensors()
+            sensors_data = self._handler.get_sensors_motor()
             if new_data_event.set():
                 return
 
@@ -124,7 +124,8 @@ class MotorController:
 
             sensors_data = []
             while not sensors_data:
-                sensors_data = self._handler.get_sensors()
+                sensors_data = self._handler.get_sensors_motor()
+
                 if new_data_event.set():
                     return
             robot_angle = sensors_data[2]
