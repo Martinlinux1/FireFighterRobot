@@ -1,4 +1,3 @@
-import errors
 import hardwarehandler
 import mathUtils
 
@@ -99,37 +98,40 @@ class MotorController:
 
     """Turns the robot to a given angle"""
     def turn(self, angle: float, speed: int):
-        # Invalid arguments.
-        if angle > 180.0 or angle < -180.0 or speed > 255.0:
-            raise errors.InvalidArgumentException
-        else:
-            robot_angle = self._handler.get_imu_sensor()
-            target_angle = robot_angle + angle
-            target_angle = target_angle % 360
+        sensors_data = []
 
-            if target_angle < 0:
-                target_angle = target_angle + 360
+        while not sensors_data:
+            sensors_data = self._handler.get_sensors()
 
-            while True:
-                robot_angle = self._handler.get_imu_sensor()
+        robot_angle = sensors_data[2]
 
-                diff = target_angle - robot_angle
-                direction = 180 - (diff + 360) % 360
+        target_angle = robot_angle + angle
+        target_angle = target_angle % 360
 
-                if direction > 0:
-                    self._handler.set_motor('A', 'F', speed)
-                    self._handler.set_motor('B', 'B', speed)
-                    self._handler.set_motor('C', 'F', speed)
-                    self._handler.set_motor('D', 'B', speed)
-                else:
-                    self._handler.set_motor('A', 'B', speed)
-                    self._handler.set_motor('B', 'F', speed)
-                    self._handler.set_motor('C', 'B', speed)
-                    self._handler.set_motor('D', 'F', speed)
+        print(robot_angle)
+        print(angle)
+        print(target_angle)
 
-                if abs(diff) < 5:
-                    self.brake()
-                    return
+        if target_angle < 0:
+            target_angle = target_angle + 360
+
+        while True:
+            sensors_data = []
+            while not sensors_data:
+                sensors_data = self._handler.get_sensors()
+            robot_angle = sensors_data[2]
+
+            diff = target_angle - robot_angle
+            direction = 180 - (diff + 360) % 360
+
+            if direction > 0:
+                self.right(speed)
+            else:
+                self.left(speed)
+
+            if abs(diff) < 5:
+                self.brake()
+                return
 
     def turn_manual(self, direction: str, speed: int):
         if direction == 'L':

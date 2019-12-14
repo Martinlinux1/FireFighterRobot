@@ -56,65 +56,28 @@ def is_obstacle(distance_sensors_data):
     return sensors_detected
 
 
-# Turn robot by a given angle.
-def turn(handler: hardwarehandler.HardwareHandler, angle, speed):
-    sensors_data = []
-
-    while not sensors_data:
-        sensors_data = handler.get_sensors()
-
-    robot_angle = sensors_data[2]
-
-    target_angle = robot_angle + angle
-    target_angle = target_angle % 360
-
-    print(robot_angle)
-    print(angle)
-    print(target_angle)
-
-    if target_angle < 0:
-        target_angle = target_angle + 360
-
-    while True:
-        sensors_data = []
-        while not sensors_data:
-            sensors_data = handler.get_sensors()
-        robot_angle = sensors_data[2]
-
-        diff = target_angle - robot_angle
-        direction = 180 - (diff + 360) % 360
-
-        if direction > 0:
-            motors.right(speed)
-        else:
-            motors.left(speed)
-
-        if abs(diff) < 5:
-            motors.brake()
-            return
-
-
 def extinguish_fire(fire_coord, line_detected, obstacles_detected):
-    max_fire_angle = find_max_fire(fire_coord)
+    if fire_coord[0]:
+        max_fire_angle = find_max_fire(fire_coord)
 
-    if max_fire_angle[0] in range(-15, 15) and 0 in line_detected and 0 in obstacles_detected:
-        print("Extinguishing")
-        motors.brake()
-        servo_angle = MathUtils.valmap(max_fire_angle[1], -90, 90, -1, 1)
+        if 0 in line_detected and 0 in obstacles_detected:
+            print("Extinguishing")
+            motors.brake()
+            servo_angle = MathUtils.valmap(max_fire_angle[1], -90, 90, -1, 1)
 
-        servo.value = servo_angle
-        fan.on()
-        sleep(5)
-        fan.off()
+            servo.value = servo_angle
+            fan.on()
+            sleep(5)
+            fan.off()
 
-        motors.backward(base_speed)
-        sleep(1)
-        print('Turning started')
-        turn(hardware_handler, 135, base_speed)
+            motors.backward(base_speed)
+            sleep(1)
+            print('Turning started')
+            motors.turn(135, base_speed)
 
-        print('Extinguishing done.')
+            print('Extinguishing done.')
 
-        return True
+            return True
 
     return False
 
@@ -123,17 +86,28 @@ def extinguish_fire(fire_coord, line_detected, obstacles_detected):
 def find_fire(fire_coord, sensors_line, obstacles_detected):
     if not extinguish_fire(fire_coord, sensors_line, obstacles_detected):
         if fire_coord[0]:
-            max_fire_angle = find_max_fire(fire_coord)
+            while not extinguish_fire(fire_coord, sensors_line, obstacles_detected):
+                sens = hardware_handler.get_sensors()
+                temps = cam.get_camera_data()
 
-            print("Robot turning: ", max_fire_angle)
+                try:
+                    l_sensors = sens[0]
+                    d_sensors = sens[1]
+                except TypeError:
+                    continue
 
-            if max_fire_angle[0] > 30 or max_fire_angle[0] < -30:
-                if max_fire_angle[0] > 0:
-                    motors.left(base_speed)
+                fire_coord = FireFinder.is_fire(temps, threshold=40)
+                sensors_line = is_line(l_sensors)
+                obstacles_detected = is_obstacle(d_sensors)
+
+                max_fire_angle = find_max_fire(fire_coord)
+
+                print("Robot turning: ", max_fire_angle)
+
+                if max_fire_angle[0] > 20 or max_fire_angle[0] < -20:
+                    motors.turn(max_fire_angle[0], base_speed - 20)
                 else:
-                    motors.right(base_speed)
-            else:
-                motors.slide(max_fire_angle[0] * -1, base_speed)
+                    motors.slide(max_fire_angle[0] * -1, base_speed)
 
             return True
 
@@ -152,14 +126,14 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
         if 7 in sensors_line and previous_line[0] == 1 and time() - previous_line[1] < 1:
             motors.backward(base_speed)
             sleep(0.1)
-            turn(hardware_handler, -90, base_speed)
+            motors.turn(-90, base_speed)
             line_history.put([1, time()])
             return True
 
         elif 1 in sensors_line and previous_line[0] == 7 and time() - previous_line[1] < 1:
             motors.backward(base_speed)
             sleep(0.1)
-            turn(hardware_handler, 90, base_speed)
+            motors.turn(90, base_speed)
             line_history.put([7, time()])
             return True
 
@@ -167,7 +141,7 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
         if 0 in sensors_on_line and previous_line[0] == 7:
             motors.backward(base_speed)
             sleep(0.1)
-            turn(hardware_handler, 60, base_speed)
+            motors.turn(60, base_speed)
 
             line_history.put([7, time()])
             return True
@@ -175,7 +149,7 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
         elif 0 in sensors_on_line and previous_line[0] == 1:
             motors.backward(base_speed)
             sleep(0.1)
-            turn(hardware_handler, -60, base_speed)
+            motors.turn(-60, base_speed)
 
             line_history.put([1, time()])
             return True
@@ -183,7 +157,7 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
         elif 0 in sensors_on_line:
             motors.backward(base_speed)
             sleep(0.1)
-            turn(hardware_handler, -60, base_speed)
+            motors.turn(-60, base_speed)
 
             line_history.put([1, time()])
 
@@ -191,37 +165,37 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
         if 6 in sensors_line and 5 in sensors_line and 4 in sensors_line:  # Left downer corner.
             motors.slide(45, base_speed)
             sleep(0.1)
-            turn(hardware_handler, 45, base_speed)
+            motors.turn(45, base_speed)
             return True
 
         elif 2 in sensors_line and 3 in sensors_line and 4 in sensors_line:  # Right downer corner.
             motors.slide(-45, base_speed)
             sleep(0.1)
-            turn(hardware_handler, -45, base_speed)
+            motors.turn(-45, base_speed)
             return True
 
         elif 0 in sensors_line and 7 in sensors_line and 6 in sensors_line:  # Left upper corner.
             motors.slide(135, base_speed)
             sleep(0.1)
-            turn(hardware_handler, 135, base_speed)
+            motors.turn(135, base_speed)
             return True
 
         elif 0 in sensors_line and 1 in sensors_line and 2 in sensors_line:  # Right upper corner.
             motors.slide(-135, base_speed)
             sleep(0.1)
-            turn(hardware_handler, -135, base_speed)
+            motors.turn(-135, base_speed)
             return True
 
         elif 6 in sensors_line and (7 in sensors_line or 5 in sensors_line):  # Line on the left.
             motors.slide(90, base_speed)
             sleep(0.1)
-            turn(hardware_handler, 90, base_speed)
+            motors.turn(90, base_speed)
             return True
 
         elif 0 in sensors_line and (7 in sensors_line or 1 in sensors_line):  # Line on the right.
             motors.slide(-90, base_speed)
             sleep(0.1)
-            turn(hardware_handler, -90, base_speed)
+            motors.turn(-90, base_speed)
             return True
 
         elif 4 in sensors_line and (5 in sensors_line or 3 in sensors_line):  # Line on the back.
@@ -231,14 +205,14 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
         elif 2 in sensors_line and (1 in sensors_line or 3 in sensors_line):  # Line on the front.
             motors.backward(base_speed)
             sleep(0.1)
-            turn(hardware_handler, 180, base_speed)
+            motors.turn(180, base_speed)
             return True
 
         # Normal sensors_line detection and avoiding.
         if 7 in sensors_line:
             motors.backward(base_speed)
             sleep(0.1)
-            turn(hardware_handler, 60, base_speed)
+            motors.turn(60, base_speed)
 
             line_history.put([7, time()])
             return True
@@ -246,7 +220,7 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
         elif 1 in sensors_line:
             motors.backward(base_speed)
             sleep(0.1)
-            turn(hardware_handler, -60, base_speed)
+            motors.turn(-60, base_speed)
 
             line_history.put([1, time()])
             return True
@@ -261,19 +235,19 @@ def avoid_obstacle(fire_coord, sensors_line, obstacles_detected):
         if 0 in obstacles_detected:
             motors.backward(base_speed)
             sleep(0.1)
-            turn(hardware_handler, -90, base_speed)
+            motors.turn(-90, base_speed)
 
             return True
         elif 1 in obstacles:
             motors.backward(base_speed)
             sleep(0.1)
-            turn(hardware_handler, -45, base_speed)
+            motors.turn(-45, base_speed)
 
             return True
         elif 3 in obstacles:
             motors.backward(base_speed)
             sleep(0.1)
-            turn(hardware_handler, 45, base_speed)
+            motors.turn(45, base_speed)
 
             return True
 
@@ -284,7 +258,7 @@ def avoid_obstacle(fire_coord, sensors_line, obstacles_detected):
 fan = DigitalOutputDevice(4, False)
 servo = Servo(14)
 
-thermal_camera = USB2FIR(refreshRate=4)
+thermal_camera = USB2FIR(refreshRate=3)
 serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
 
 cam = cameraReader.CameraReader(thermal_camera)
@@ -308,10 +282,11 @@ robot_logic_process.daemon = True
 robot_logic_process.start()
 
 base_speed = 100
-
+sleep(5)
 while True:
     sensors = hardware_handler.get_sensors()
     temperatures = cam.get_camera_data()
+    print(temperatures)
 
     try:
         light_sensors = sensors[0]
@@ -328,14 +303,10 @@ while True:
     print(obstacles)
     print(fire_coordinates)
 
-    is_fire, extinguished = find_fire(fire_coordinates, sensors_on_line, obstacles)
+    is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
 
-    if extinguished:
-        motors.forward(base_speed)
-        continue
-
-    any_line = avoid_line(sensors_on_line)
-    are_obstacles = avoid_obstacle(obstacles)
+    any_line = avoid_line(fire_coordinates, sensors_on_line, obstacles)
+    are_obstacles = avoid_obstacle(fire_coordinates, sensors_on_line, obstacles)
 
     if (not is_fire) and (not any_line) and (not are_obstacles):
         motors.forward(base_speed)
