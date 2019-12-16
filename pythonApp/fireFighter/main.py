@@ -61,7 +61,7 @@ def extinguish_fire(fire_coord, line_detected, obstacles_detected):
     if fire_coord[0]:
         max_fire_angle = find_max_fire(fire_coord)
 
-        if 0 in line_detected and 0 in obstacles_detected:
+        if 0 in line_detected:
             print("Extinguishing")
             motors.brake()
             servo_angle = MathUtils.valmap(max_fire_angle[1], -90, 90, -1, 1)
@@ -269,7 +269,7 @@ def avoid_obstacle(fire_coord, sensors_line, obstacles_detected):
 fan = DigitalOutputDevice(4, False)
 servo = Servo(14)
 
-thermal_camera = USB2FIR(refreshRate=3)
+thermal_camera = USB2FIR(refreshRate=4)
 serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
 
 cam = cameraReader.CameraReader(thermal_camera)
