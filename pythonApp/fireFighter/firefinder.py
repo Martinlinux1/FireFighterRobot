@@ -1,5 +1,7 @@
 import math
 
+import errors
+
 
 class FireFinder:
     @staticmethod
@@ -35,6 +37,8 @@ class FireFinder:
     @staticmethod
     def coordinates_to_angle(fire_coordinates):
         fire_angles = []
+        if fire_coordinates[2] == -1:
+            raise errors.NoFireDetectedError
 
         if isinstance(fire_coordinates, list):
             angle_horizontal = (fire_coordinates[0] * (120 / 32) - 120 / 2)

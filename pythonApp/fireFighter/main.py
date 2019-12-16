@@ -8,6 +8,7 @@ from pyusb2fir import USB2FIR
 
 import cameraReader
 import communicationHandler
+import errors
 import hardwarehandler
 import motorController
 import motorsWriter
@@ -86,6 +87,8 @@ def extinguish_fire(fire_coord, line_detected, obstacles_detected):
 def find_fire(fire_coord, sensors_line, obstacles_detected):
     if not extinguish_fire(fire_coord, sensors_line, obstacles_detected):
         if fire_coord[0]:
+            motors.brake()
+            sleep(0.1)
             while not extinguish_fire(fire_coord, sensors_line, obstacles_detected):
                 sens = hardware_handler.get_sensors()
                 temps = cam.get_camera_data()
@@ -101,14 +104,20 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
                 sensors_line = is_line(l_sensors)
                 obstacles_detected = is_obstacle(d_sensors)
 
-                max_fire_angle = find_max_fire(fire_coord)
+                try:
+                    max_fire_angle = find_max_fire(fire_coord)
+                except errors.NoFireDetectedError:
+                    break
 
                 print("Robot turning: ", max_fire_angle)
 
                 if max_fire_angle[0] > 20 or max_fire_angle[0] < -20:
-                    motors.turn(max_fire_angle[0] * -1, base_speed - 20)
+                    if max_fire_angle[0] > 0:
+                        motors.left(base_speed - 30)
+                    else:
+                        motors.right(base_speed - 30)
                 else:
-                    motors.slide(max_fire_angle[0] * -1, base_speed)
+                    motors.slide(max_fire_angle[0] * -1, base_speed - 30)
 
             print('fire extinguished')
             return True

@@ -49,6 +49,9 @@ class HardwareHandler:
         if self._motors_pipe_reader.poll():
             self._motors = self._motors_pipe_reader.recv()
 
+        if self._motors[0] == 0 and self._motors[1] == 0 and self._motors[2] == 0 and self._motors[3] == 0:
+            self._motor_writer.brake()
+
         if self._motors[0]:
             self._motor_writer.write_motor('A', self._motors[0][0], self._motors[0][1])
         if self._motors[1]:

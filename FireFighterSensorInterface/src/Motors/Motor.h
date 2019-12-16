@@ -21,6 +21,8 @@ class Motor {
     /// <param name="direction"> Direction for the motor to be turned.
     /// <param name="speed"> Speed for the motor to be turned.
     void motorWrite(char direction, int speed);
+
+    void brake();
   private:
     int *ledcChannels;
 };

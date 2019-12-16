@@ -6,3 +6,8 @@ class InvalidMessageException(Exception):
 class InvalidArgumentException(Exception):
     """Is raised, when an invalid argument/arguments are given to a function"""
     pass
+
+
+class NoFireDetectedError(Exception):
+    """Is raised, when no fire was found."""
+    pass

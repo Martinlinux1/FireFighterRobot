@@ -188,6 +188,15 @@ void loop() {
         responseEncoded = "~" + commHandler.encode(TYPE_MOTOR, response);
       }
 
+      else if (messageType == TYPE_MOTORS_BRAKE) {
+        motors[0].brake();
+        motors[1].brake();
+        motors[2].brake();
+        motors[3].brake();
+
+        responseEncoded = '~' + message;
+      }
+
       // Invalid request.
       else {
         return; 

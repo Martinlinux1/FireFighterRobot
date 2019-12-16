@@ -17,6 +17,7 @@ class CommunicationHandler:
         self.motor = 'M'
         self.echo = 'E'
         self.sensors_data = 'A'
+        self.motors_brake = 'B'
 
         self._messageStart = '<'
         self._messageEnd = '>'

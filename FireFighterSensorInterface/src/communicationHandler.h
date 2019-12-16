@@ -5,6 +5,7 @@
  *    
  *    < - message start character 
  *    message_type:
+ *      A - dumping all sensors data
  *      L - light sensor reading
  *      D - distance sensor reading
  *      I - IMU sensor reading(not implemented yet)
@@ -32,6 +33,8 @@
 #define TYPE_ECHO 4
 #define TYPE_LIGHT_SENSORS_CALIBRATION 5
 #define TYPE_DATA 6
+#define TYPE_MOTORS_BRAKE 7
+
 
 class CommunicationHandler {
   public:
@@ -58,6 +61,7 @@ class CommunicationHandler {
     const char echo = 'E';
     const char data = 'A';
     const char lightSensorsCalibration = 'C';
+    const char motorsBrake = 'B';
     const char messageStart = '<';
     const char messageEnd = '>';
     const char dataStart = '{';

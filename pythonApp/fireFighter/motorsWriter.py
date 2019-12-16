@@ -23,3 +23,13 @@ class MotorsWriter:
         # Invalid response.
         else:
             raise errors.InvalidMessageException
+
+    def brake(self):
+        message = self._comm_handler.encode_message(self._comm_handler.motors_brake)
+
+        response = self._comm_handler.write_message(message)
+
+        if response == message:
+            return True
+        else:
+            raise errors.InvalidMessageException

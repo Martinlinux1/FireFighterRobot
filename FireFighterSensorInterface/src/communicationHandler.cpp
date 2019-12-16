@@ -56,6 +56,11 @@ bool CommunicationHandler::decode(String message, int *messageType, String *data
       *messageType = TYPE_DATA;
     }
 
+    else if (messageCharArr[i] == CommunicationHandler::motorsBrake) {
+      *data = CommunicationHandler::getDataFromMessage(message);
+      *messageType = TYPE_MOTORS_BRAKE;
+    }
+
     // Invalid message.
     else {
       return false;
@@ -103,6 +108,10 @@ String CommunicationHandler::encode(int messageType, String data) {
 
   else if (messageType == TYPE_LIGHT_SENSORS_CALIBRATION) {
     message += CommunicationHandler::lightSensorsCalibration;
+  }
+
+  else if (messageType == TYPE_MOTORS_BRAKE) {
+    message += CommunicationHandler::motorsBrake;
   }
 
   // Invalid message type.
