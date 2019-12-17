@@ -210,8 +210,7 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
             return True
 
         elif 4 in sensors_line and (5 in sensors_line or 3 in sensors_line):  # Line on the back.
-            motors.forward(
-                bahttps: // learn.sparkfun.com / tutorials / how - to - run - a - raspberry - pi - program - on - startup / allse_speed)
+            motors.forward(base_speed)
             return True
 
         elif 2 in sensors_line and (1 in sensors_line or 3 in sensors_line):  # Line on the front.
