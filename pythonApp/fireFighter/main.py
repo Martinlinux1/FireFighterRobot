@@ -40,7 +40,7 @@ def find_max_fire(fire_coord):
 def is_line(line_sensors_data):
     on_line_sensors = []
     for i in range(8):
-        if line_sensors_data[i] > 2500:
+        if line_sensors_data[i] < 1500:
             on_line_sensors.append(i)
 
     return on_line_sensors
@@ -210,7 +210,8 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
             return True
 
         elif 4 in sensors_line and (5 in sensors_line or 3 in sensors_line):  # Line on the back.
-            motors.forward(base_speed)
+            motors.forward(
+                bahttps: // learn.sparkfun.com / tutorials / how - to - run - a - raspberry - pi - program - on - startup / allse_speed)
             return True
 
         elif 2 in sensors_line and (1 in sensors_line or 3 in sensors_line):  # Line on the front.
