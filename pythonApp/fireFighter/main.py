@@ -294,6 +294,8 @@ robot_logic_process.start()
 
 base_speed = 100
 sleep(5)
+
+time_start = time()
 while True:
     sensors = hardware_handler.get_sensors()
     temperatures = cam.get_camera_data()
@@ -321,3 +323,36 @@ while True:
 
     if (not is_fire) and (not any_line) and (not are_obstacles):
         motors.forward(base_speed)
+
+        if time() - time_start > 5:
+            current_angle = imu_sensor + 1
+
+            while True:
+                robot_angle = imu_sensor
+
+                target_angle = robot_angle + 359
+                target_angle = target_angle % 360
+
+                if target_angle < 0:
+                    target_angle = target_angle + 360
+
+                while True:
+                    sensors_data = []
+                    while not sensors_data:
+                        sensors_data = hardware_handler.get_sensors()
+                    robot_angle = sensors_data[2]
+
+                    diff = target_angle - robot_angle
+                    direction = 180 - (diff + 360) % 360
+
+                    motors.left(base_speed - 30)
+
+                    temperatures = cam.get_camera_data()
+
+                    fire_coordinates = FireFinder.is_fire(temperatures, threshold=35)
+                    is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
+
+                    if (abs(diff) < 5 and direction <= 0) or is_fire:
+                        motors.brake()
+                        time_start = time()
+                        break
