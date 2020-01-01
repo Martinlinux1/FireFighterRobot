@@ -15,18 +15,9 @@ class CameraReader:
         self._temperatures = []
 
     def update_camera_data(self):
-        sub_frame_0 = self._thermal_camera.initializeFrame()
-        sub_frame_1 = self._thermal_camera.initializeFrame()
         frame = self._thermal_camera.initializeFrame()
 
-        self._thermal_camera.updateFrame(sub_frame_0)
-        self._thermal_camera.updateFrame(sub_frame_1)
-
-        for i in range(len(sub_frame_0)):
-            if sub_frame_0[i] == 0:
-                frame[i] = sub_frame_1[i]
-            elif sub_frame_1[i] == 0:
-                frame[i] = sub_frame_0[i]
+        self._thermal_camera.updateFrame(frame)
 
         if self._camera_read_event.is_set():
             self._camera_read_event.clear()

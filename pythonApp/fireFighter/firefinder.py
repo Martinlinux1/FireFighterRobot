@@ -8,7 +8,6 @@ class FireFinder:
     def is_fire(temperatures, threshold: int):
         fire_positions = []
         for i in range(len(temperatures)):
-            # print(self._temperatures[i])
             if i == 0:
                 no_fire_pixels_around = True
             elif i < 32:
