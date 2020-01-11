@@ -62,6 +62,7 @@ def extinguish_fire(fire_coord, line_detected, obstacles_detected):
         max_fire_angle = find_max_fire(fire_coord)
 
         if 0 in line_detected:
+            buzzer.on()
             print("Extinguishing")
             motors.brake()
             servo_angle = MathUtils.valmap(max_fire_angle[1], -90, 90, -1, 1)
@@ -77,7 +78,7 @@ def extinguish_fire(fire_coord, line_detected, obstacles_detected):
             motors.turn(135, base_speed)
 
             print('Extinguishing done.')
-
+            buzzer.off()
             return True
 
     return False
@@ -89,6 +90,8 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
         if fire_coord[0]:
             motors.brake()
             sleep(0.1)
+            ts = time()
+            buzzer.on()
             while not extinguish_fire(fire_coord, sensors_line, obstacles_detected):
                 sens = hardware_handler.get_sensors()
                 temps = cam.get_camera_data()
@@ -118,6 +121,9 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
                         motors.right(base_speed - 30)
                 else:
                     motors.slide(max_fire_angle[0] * -1, base_speed - 30)
+                if time() - ts > 0.2:
+                    buzzer.toggle()
+                    ts = time()
 
             print('fire extinguished')
             return True
@@ -253,7 +259,6 @@ def avoid_obstacle(fire_coord, sensors_line, obstacles_detected):
             motors.backward(base_speed)
             sleep(0.1)
             motors.turn(-45, base_speed)
-
             return True
         elif 3 in obstacles:
             motors.backward(base_speed)
@@ -268,6 +273,7 @@ def avoid_obstacle(fire_coord, sensors_line, obstacles_detected):
 
 fan = DigitalOutputDevice(4, False)
 servo = Servo(14)
+buzzer = DigitalOutputDevice(15)
 
 thermal_camera = USB2FIR(refreshRate=4)
 serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
@@ -324,6 +330,8 @@ while True:
         motors.forward(base_speed)
 
         if time() - time_start > 5:
+            buzzer.on()
+
             current_angle = imu_sensor + 1
 
             robot_angle = imu_sensor
@@ -337,7 +345,8 @@ while True:
 
             if target_angle < 0:
                 target_angle = target_angle + 360
-
+            time_turning_start = time()
+            ts = time()
             while True:
                 sensors_data = []
                 while not sensors_data:
@@ -351,10 +360,13 @@ while True:
 
                 temperatures = cam.get_camera_data()
 
-                fire_coordinates = FireFinder.is_fire(temperatures, threshold=35)
+                fire_coordinates = FireFinder.is_fire(temperatures, threshold=40)
                 is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
 
-                if diff in range(-5, 0) or is_fire:
+                if time() - ts > 0.5:
+                    buzzer.toggle()
+
+                if time() - time_turning_start > 20 or is_fire:
                     motors.brake()
                     time_start = time()
                     break
