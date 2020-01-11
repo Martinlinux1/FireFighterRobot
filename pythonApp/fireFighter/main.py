@@ -40,7 +40,7 @@ def find_max_fire(fire_coord):
 def is_line(line_sensors_data):
     on_line_sensors = []
     for i in range(8):
-        if line_sensors_data[i] < 1500:
+        if line_sensors_data[i] > 2500:
             on_line_sensors.append(i)
 
     return on_line_sensors
@@ -299,7 +299,6 @@ time_start = time()
 while True:
     sensors = hardware_handler.get_sensors()
     temperatures = cam.get_camera_data()
-    print(temperatures)
 
     try:
         light_sensors = sensors[0]
@@ -327,32 +326,38 @@ while True:
         if time() - time_start > 5:
             current_angle = imu_sensor + 1
 
+            robot_angle = imu_sensor
+
+            target_angle = robot_angle + 359
+            target_angle = target_angle % 360
+
+            motors.right(base_speed - 30)
+
+            sleep(0.1)
+
+            if target_angle < 0:
+                target_angle = target_angle + 360
+
             while True:
-                robot_angle = imu_sensor
+                sensors_data = []
+                while not sensors_data:
+                    sensors_data = hardware_handler.get_sensors()
+                robot_angle = sensors_data[2]
 
-                target_angle = robot_angle + 359
-                target_angle = target_angle % 360
+                diff = robot_angle - target_angle
+                direction = 180 - (diff + 360) % 360
 
-                if target_angle < 0:
-                    target_angle = target_angle + 360
+                motors.left(base_speed - 30)
 
-                while True:
-                    sensors_data = []
-                    while not sensors_data:
-                        sensors_data = hardware_handler.get_sensors()
-                    robot_angle = sensors_data[2]
+                temperatures = cam.get_camera_data()
 
-                    diff = target_angle - robot_angle
-                    direction = 180 - (diff + 360) % 360
+                fire_coordinates = FireFinder.is_fire(temperatures, threshold=35)
+                is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
 
-                    motors.left(base_speed - 30)
+                if diff in range(-5, 0) or is_fire:
+                    motors.brake()
+                    time_start = time()
+                    break
 
-                    temperatures = cam.get_camera_data()
-
-                    fire_coordinates = FireFinder.is_fire(temperatures, threshold=35)
-                    is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
-
-                    if (abs(diff) < 5 and direction <= 0) or is_fire:
-                        motors.brake()
-                        time_start = time()
-                        break
+    else:
+        time_start = time()

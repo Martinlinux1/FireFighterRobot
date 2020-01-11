@@ -30,7 +30,6 @@ class CameraReader:
 
         if self._camera_read_event.is_set():
             self._camera_read_event.clear()
-            print('sending frame')
             self._temp_data_pipe_writer.send(frame)
 
     def get_camera_data(self):
