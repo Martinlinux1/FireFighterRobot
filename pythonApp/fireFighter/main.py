@@ -2,19 +2,19 @@ import multiprocessing
 import queue
 from time import sleep, time
 
+import numpy
 import serial
 from gpiozero import DigitalOutputDevice, Servo
-from pyUSB2FIR.pyusb2fir.usb2fir import USB2FIR
 
 import cameraReader
 import communicationHandler
-import errors
 import hardwarehandler
 import motorController
 import motorsWriter
 import sensorsReader
 from firefinder import FireFinder
 from mathUtils import MathUtils
+from pyUSB2FIR.pyusb2fir.usb2fir import USB2FIR
 
 
 def read_camera(cam_reader: cameraReader.CameraReader):
@@ -60,8 +60,8 @@ def is_obstacle(distance_sensors_data):
 def extinguish_fire(fire_coord, line_detected, obstacles_detected):
     if fire_coord[0]:
         max_fire_angle = find_max_fire(fire_coord)
-
         if 0 in line_detected:
+            cam.clear_camera_event()
             buzzer.on()
             print("Extinguishing")
             motors.brake()
@@ -79,6 +79,7 @@ def extinguish_fire(fire_coord, line_detected, obstacles_detected):
 
             print('Extinguishing done.')
             buzzer.off()
+            cam.set_camera_event()
             return True
 
     return False
@@ -91,11 +92,12 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
             motors.brake()
             sleep(0.1)
             ts = time()
-            buzzer.on()
-            while not extinguish_fire(fire_coord, sensors_line, obstacles_detected):
+            # buzzer.on()
+            fire_extinguished = extinguish_fire(fire_coord, sensors_line, obstacles_detected)
+            while not fire_extinguished:
                 sens = hardware_handler.get_sensors()
                 temps = cam.get_camera_data()
-                print(temps)
+                print(numpy.average(temps))
                 try:
                     l_sensors = sens[0]
                     d_sensors = sens[1]
@@ -103,27 +105,24 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
                     continue
 
                 fire_coord = FireFinder.is_fire(temps, threshold=40)
-                print(fire_coord)
-                sensors_line = is_line(l_sensors)
-                obstacles_detected = is_obstacle(d_sensors)
-
-                try:
-                    max_fire_angle = find_max_fire(fire_coord)
-                except errors.NoFireDetectedError:
-                    break
-
-                print("Robot turning: ", max_fire_angle)
-
-                if max_fire_angle[0] > 20 or max_fire_angle[0] < -20:
-                    if max_fire_angle[0] > 0:
-                        motors.left(base_speed - 30)
-                    else:
-                        motors.right(base_speed - 30)
-                else:
-                    motors.slide(max_fire_angle[0] * -1, base_speed - 30)
-                if time() - ts > 0.2:
+                if fire_coord[0]:
                     buzzer.toggle()
-                    ts = time()
+                    sensors_line = is_line(l_sensors)
+                    obstacles_detected = is_obstacle(d_sensors)
+
+                    max_fire_angle = find_max_fire(fire_coord)
+
+                    print("Robot turning: ", max_fire_angle)
+
+                    if max_fire_angle[0] > 20 or max_fire_angle[0] < -20:
+                        if max_fire_angle[0] > 0:
+                            motors.left(base_speed - 30)
+                        else:
+                            motors.right(base_speed - 30)
+                    else:
+                        motors.slide(max_fire_angle[0] * -1, base_speed - 30)
+
+                    fire_extinguished = extinguish_fire(fire_coord, sensors_line, obstacles_detected)
 
             print('fire extinguished')
             return True
@@ -273,7 +272,7 @@ def avoid_obstacle(fire_coord, sensors_line, obstacles_detected):
 
 fan = DigitalOutputDevice(4, False)
 servo = Servo(14)
-buzzer = DigitalOutputDevice(15)
+buzzer = DigitalOutputDevice(17)
 
 thermal_camera = USB2FIR(refreshRate=4)
 serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
@@ -303,6 +302,7 @@ sleep(5)
 
 time_start = time()
 while True:
+    buzzer.off()
     sensors = hardware_handler.get_sensors()
     temperatures = cam.get_camera_data()
 
@@ -354,9 +354,9 @@ while True:
                 sensors_data = []
                 while not sensors_data:
                     sensors_data = hardware_handler.get_sensors()
-                    light_sensors = sensors_data[0]
-                    distance_sensors = sensors_data[1]
 
+                light_sensors = sensors_data[0]
+                distance_sensors = sensors_data[1]
                 robot_angle = sensors_data[2]
                 sensors_on_line = is_line(light_sensors)
                 obstacles = is_obstacle(distance_sensors)
@@ -367,13 +367,18 @@ while True:
                 motors.left(base_speed - 30)
 
                 temperatures = cam.get_camera_data()
-
+                sleep(0.05)
+                buzzer.off()
                 fire_coordinates = FireFinder.is_fire(temperatures, threshold=40)
                 is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
 
-                if time() - ts > 1:
-                    buzzer.toggle()
-                    ts = time()
+                print(sensors_on_line)
+                print(obstacles)
+                print(fire_coordinates)
+
+                # if time() - ts > 1:
+                #     buzzer.toggle()
+                #     ts = time()
 
                 if (abs(diff) < 5 and iteration == 1) or is_fire:
                     motors.brake()
