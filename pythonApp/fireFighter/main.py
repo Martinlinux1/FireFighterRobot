@@ -4,7 +4,7 @@ from time import sleep, time
 
 import serial
 from gpiozero import DigitalOutputDevice, Servo
-from pyusb2fir import USB2FIR
+from pyUSB2FIR.pyusb2fir.usb2fir import USB2FIR
 
 import cameraReader
 import communicationHandler
