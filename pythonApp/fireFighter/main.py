@@ -336,7 +336,7 @@ while True:
 
             robot_angle = imu_sensor
 
-            target_angle = robot_angle + 359
+            target_angle = robot_angle + 180
             target_angle = target_angle % 360
 
             motors.right(base_speed - 30)
@@ -347,6 +347,9 @@ while True:
                 target_angle = target_angle + 360
             time_turning_start = time()
             ts = time()
+
+            iteration = 0
+
             while True:
                 sensors_data = []
                 while not sensors_data:
@@ -372,10 +375,16 @@ while True:
                     buzzer.toggle()
                     ts = time()
 
-                if time() - time_turning_start > 20 or is_fire:
+                if (abs(diff) < 5 and iteration == 1) or is_fire:
                     motors.brake()
                     time_start = time()
                     break
+
+                elif abs(diff) < 5 and iteration != 1:
+                    target_angle = robot_angle + 180
+                    target_angle = target_angle % 360
+
+                    iteration = 1
 
     else:
         time_start = time()
