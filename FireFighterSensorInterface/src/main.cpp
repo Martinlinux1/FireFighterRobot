@@ -1,6 +1,6 @@
 /**
- * The sensor interface of fire fighter robot. Reads light, distance(not implemented yet), 
- * angle(not implemented yet) of the robot and controls the motors(4). It communicates with Raspberry Pi 
+ * The sensor interface of fire fighter robot. Reads light, distance, 
+ * angle of the robot and controls the motors(4). It communicates with Raspberry Pi 
  * logic unit, that controls the robot.
  * 
  * Creator: Martinlinux

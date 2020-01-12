@@ -351,7 +351,12 @@ while True:
                 sensors_data = []
                 while not sensors_data:
                     sensors_data = hardware_handler.get_sensors()
+                    light_sensors = sensors_data[0]
+                    distance_sensors = sensors_data[1]
+
                 robot_angle = sensors_data[2]
+                sensors_on_line = is_line(light_sensors)
+                obstacles = is_obstacle(distance_sensors)
 
                 diff = robot_angle - target_angle
                 direction = 180 - (diff + 360) % 360
@@ -363,8 +368,9 @@ while True:
                 fire_coordinates = FireFinder.is_fire(temperatures, threshold=40)
                 is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
 
-                if time() - ts > 0.5:
+                if time() - ts > 1:
                     buzzer.toggle()
+                    ts = time()
 
                 if time() - time_turning_start > 20 or is_fire:
                     motors.brake()
