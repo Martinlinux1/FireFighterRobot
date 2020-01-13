@@ -104,7 +104,7 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
                 except TypeError:
                     continue
 
-                fire_coord = FireFinder.is_fire(temps, threshold=40)
+                fire_coord = FireFinder.is_fire(temps, threshold=35)
                 if fire_coord[0]:
                     buzzer.toggle()
                     sensors_line = is_line(l_sensors)
@@ -176,6 +176,7 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
             motors.turn(-60, base_speed)
 
             line_history.put([1, time()])
+            return True
 
         # Detection of line in specific situations.
         if 6 in sensors_line and 5 in sensors_line and 4 in sensors_line:  # Left downer corner.
@@ -313,7 +314,7 @@ while True:
     except TypeError:
         continue
 
-    fire_coordinates = FireFinder.is_fire(temperatures, threshold=40)
+    fire_coordinates = FireFinder.is_fire(temperatures, threshold=35)
     sensors_on_line = is_line(light_sensors)
     obstacles = is_obstacle(distance_sensors)
 
@@ -369,7 +370,7 @@ while True:
                 temperatures = cam.get_camera_data()
                 sleep(0.05)
                 buzzer.off()
-                fire_coordinates = FireFinder.is_fire(temperatures, threshold=40)
+                fire_coordinates = FireFinder.is_fire(temperatures, threshold=35)
                 is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
 
                 print(sensors_on_line)
