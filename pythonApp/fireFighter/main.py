@@ -102,7 +102,7 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
                 except TypeError:
                     continue
 
-                fire_coord = FireFinder.is_fire(temps, threshold=35)
+                fire_coord = FireFinder.is_fire(temps, threshold=threshold, kernel_size=kernel_size)
                 if fire_coord[0]:
                     buzzer.toggle()
                     sensors_line = is_line(l_sensors)
@@ -279,6 +279,9 @@ serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
 cam = cameraReader.CameraReader(thermal_camera)
 comm_handler = communicationHandler.CommunicationHandler(serial_port)
 
+kernel_size = 5 * 5
+threshold = 35
+
 sensors_reader = sensorsReader.SensorsReader(comm_handler)
 motors_writer = motorsWriter.MotorsWriter(comm_handler)
 
@@ -312,7 +315,7 @@ while True:
     except TypeError:
         continue
 
-    fire_coordinates = FireFinder.is_fire(temperatures, threshold=35)
+    fire_coordinates = FireFinder.is_fire(temperatures, threshold=threshold, kernel_size=kernel_size)
     sensors_on_line = is_line(light_sensors)
     obstacles = is_obstacle(distance_sensors)
 
@@ -368,16 +371,12 @@ while True:
                 temperatures = cam.get_camera_data()
                 sleep(0.05)
                 buzzer.off()
-                fire_coordinates = FireFinder.is_fire(temperatures, threshold=35)
+                fire_coordinates = FireFinder.is_fire(temperatures, threshold=threshold, kernel_size=kernel_size)
                 is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
 
                 print(sensors_on_line)
                 print(obstacles)
                 print(fire_coordinates)
-
-                # if time() - ts > 1:
-                #     buzzer.toggle()
-                #     ts = time()
 
                 if (abs(diff) < 5 and iteration == 1) or is_fire:
                     motors.brake()
