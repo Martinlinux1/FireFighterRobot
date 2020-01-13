@@ -91,8 +91,6 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
         if fire_coord[0]:
             motors.brake()
             sleep(0.1)
-            ts = time()
-            # buzzer.on()
             fire_extinguished = extinguish_fire(fire_coord, sensors_line, obstacles_detected)
             while not fire_extinguished:
                 sens = hardware_handler.get_sensors()
