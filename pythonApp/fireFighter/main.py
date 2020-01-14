@@ -2,7 +2,6 @@ import multiprocessing
 import queue
 from time import sleep, time
 
-import numpy
 import serial
 from gpiozero import DigitalOutputDevice, Servo
 
@@ -79,7 +78,6 @@ def extinguish_fire(fire_coord, line_detected, obstacles_detected):
 
             print('Extinguishing done.')
             buzzer.off()
-            cam.set_camera_event()
             return True
 
     return False
@@ -95,7 +93,6 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
             while not fire_extinguished:
                 sens = hardware_handler.get_sensors()
                 temps = cam.get_camera_data()
-                print(numpy.average(temps))
                 try:
                     l_sensors = sens[0]
                     d_sensors = sens[1]
@@ -269,6 +266,62 @@ def avoid_obstacle(fire_coord, sensors_line, obstacles_detected):
     return False
 
 
+def scan_fire():
+    buzzer.on()
+    robot_angle = imu_sensor
+
+    target_angle = robot_angle + 180
+    target_angle = target_angle % 360
+
+    motors.right(base_speed - 30)
+
+    sleep(0.1)
+
+    if target_angle < 0:
+        target_angle = target_angle + 360
+    ts = time()
+
+    iteration = 0
+
+    while True:
+        sensors_data = []
+        while not sensors_data:
+            sensors_data = hardware_handler.get_sensors()
+
+        light_sensors = sensors_data[0]
+        distance_sensors = sensors_data[1]
+        robot_angle = sensors_data[2]
+        sensors_on_line = is_line(light_sensors)
+        obstacles = is_obstacle(distance_sensors)
+
+        diff = robot_angle - target_angle
+
+        motors.left(base_speed - 30)
+
+        temperatures = cam.get_camera_data()
+        sleep(0.05)
+        buzzer.off()
+        fire_coordinates = FireFinder.is_fire(temperatures, threshold=threshold, kernel_size=kernel_size)
+        is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
+
+        if (abs(diff) < 5 and iteration == 1) or is_fire:
+            motors.brake()
+            print('Done')
+            return
+
+        elif abs(diff) < 5 and iteration != 1:
+            target_angle = robot_angle + 180
+            target_angle = target_angle % 360
+
+            iteration = 1
+
+        if time() - ts > 0.5:
+            buzzer.toggle()
+            ts = time()
+
+
+time_delay = 2
+
 fan = DigitalOutputDevice(4, False)
 servo = Servo(14)
 buzzer = DigitalOutputDevice(17)
@@ -303,91 +356,61 @@ base_speed = 100
 sleep(5)
 
 time_start = time()
-while True:
-    buzzer.off()
-    sensors = hardware_handler.get_sensors()
-    temperatures = cam.get_camera_data()
 
-    try:
-        light_sensors = sensors[0]
-        distance_sensors = sensors[1]
-        imu_sensor = sensors[2]
-    except TypeError:
-        continue
+turn = 0
 
-    fire_coordinates = FireFinder.is_fire(temperatures, threshold=threshold, kernel_size=kernel_size)
-    sensors_on_line = is_line(light_sensors)
-    obstacles = is_obstacle(distance_sensors)
+try:
+    while True:
+        buzzer.off()
+        sensors = hardware_handler.get_sensors()
+        temperatures = cam.get_camera_data()
 
-    print(sensors_on_line)
-    print(obstacles)
-    print(fire_coordinates)
+        try:
+            light_sensors = sensors[0]
+            distance_sensors = sensors[1]
+            imu_sensor = sensors[2]
+        except TypeError:
+            continue
 
-    is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
+        fire_coordinates = FireFinder.is_fire(temperatures, threshold=threshold, kernel_size=kernel_size)
+        sensors_on_line = is_line(light_sensors)
+        obstacles = is_obstacle(distance_sensors)
 
-    any_line = avoid_line(fire_coordinates, sensors_on_line, obstacles)
-    are_obstacles = avoid_obstacle(fire_coordinates, sensors_on_line, obstacles)
+        if 1 in sensors_on_line and 7 in sensors_on_line or 0 in sensors_on_line:
+            turn_value = -90 if turn % 2 == 0 else 90
 
-    if (not is_fire) and (not any_line) and (not are_obstacles):
-        motors.forward(base_speed)
-
-        if time() - time_start > 5:
-            buzzer.on()
-
-            current_angle = imu_sensor + 1
-
-            robot_angle = imu_sensor
-
-            target_angle = robot_angle + 180
-            target_angle = target_angle % 360
-
-            motors.right(base_speed - 30)
-
-            sleep(0.1)
-
-            if target_angle < 0:
-                target_angle = target_angle + 360
-            time_turning_start = time()
-            ts = time()
-
-            iteration = 0
-
-            while True:
-                sensors_data = []
-                while not sensors_data:
-                    sensors_data = hardware_handler.get_sensors()
-
-                light_sensors = sensors_data[0]
-                distance_sensors = sensors_data[1]
-                robot_angle = sensors_data[2]
-                sensors_on_line = is_line(light_sensors)
-                obstacles = is_obstacle(distance_sensors)
-
-                diff = robot_angle - target_angle
-                direction = 180 - (diff + 360) % 360
-
-                motors.left(base_speed - 30)
-
+            motors.turn(turn_value, base_speed - 30)
+            motors.forward(base_speed)
+            t_start = time()
+            while time() - t_start < time_delay:
+                sensors = hardware_handler.get_sensors()
                 temperatures = cam.get_camera_data()
-                sleep(0.05)
-                buzzer.off()
-                fire_coordinates = FireFinder.is_fire(temperatures, threshold=threshold, kernel_size=kernel_size)
-                is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
 
-                print(sensors_on_line)
-                print(obstacles)
-                print(fire_coordinates)
+                try:
+                    light_sensors = sensors[0]
+                except TypeError:
+                    continue
 
-                if (abs(diff) < 5 and iteration == 1) or is_fire:
-                    motors.brake()
-                    time_start = time()
-                    break
+                sensors_on_line = is_line(light_sensors)
 
-                elif abs(diff) < 5 and iteration != 1:
-                    target_angle = robot_angle + 180
-                    target_angle = target_angle % 360
+                if 0 in sensors_on_line:
+                    raise KeyboardInterrupt
 
-                    iteration = 1
+            motors.brake()
 
-    else:
-        time_start = time()
+            motors.turn(turn_value, base_speed - 30)
+
+            turn += 1
+            time_start = time()
+
+        if time() - time_start > time_delay:
+            scan_fire()
+            time_start = time()
+
+        else:
+            motors.forward(base_speed)
+
+except KeyboardInterrupt:
+    motors.brake()
+    print('Exiting program')
+    sleep(1)
