@@ -14,6 +14,7 @@ import sensorsReader
 from firefinder import FireFinder
 from mathUtils import MathUtils
 from pyUSB2FIR.pyusb2fir.usb2fir import USB2FIR
+from timer import Timer
 
 
 def read_camera(cam_reader: cameraReader.CameraReader):
@@ -90,6 +91,7 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
             motors.brake()
             sleep(0.1)
             fire_extinguished = extinguish_fire(fire_coord, sensors_line, obstacles_detected)
+
             while not fire_extinguished:
                 sens = hardware_handler.get_sensors()
                 temps = cam.get_camera_data()
@@ -279,7 +281,8 @@ def scan_fire():
 
     if target_angle < 0:
         target_angle = target_angle + 360
-    ts = time()
+
+    timer_led_signal = Timer()
 
     iteration = 0
 
@@ -315,9 +318,9 @@ def scan_fire():
 
             iteration = 1
 
-        if time() - ts > 0.5:
+        if timer_led_signal.get_time_sec() > 0.5:
             buzzer.toggle()
-            ts = time()
+            timer_led_signal.reset()
 
 
 time_delay = 2
@@ -355,7 +358,7 @@ robot_logic_process.start()
 base_speed = 100
 sleep(5)
 
-time_start = time()
+fire_scan_timer = Timer()
 
 turn = 0
 
@@ -381,8 +384,10 @@ try:
 
             motors.turn(turn_value, base_speed - 30)
             motors.forward(base_speed)
-            t_start = time()
-            while time() - t_start < time_delay:
+
+            timer_forward = Timer()
+
+            while timer_forward.get_time_sec() < time_delay:
                 sensors = hardware_handler.get_sensors()
                 temperatures = cam.get_camera_data()
 
@@ -401,9 +406,9 @@ try:
             motors.turn(turn_value, base_speed - 30)
 
             turn += 1
-            time_start = time()
+            fire_scan_timer.reset()
 
-        if time() - time_start > time_delay:
+        if fire_scan_timer.get_time_sec() > time_delay:
             scan_fire()
             time_start = time()
 
