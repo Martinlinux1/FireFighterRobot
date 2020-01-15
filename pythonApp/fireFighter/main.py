@@ -72,11 +72,6 @@ def extinguish_fire(fire_coord, line_detected, obstacles_detected):
             sleep(5)
             fan.off()
 
-            motors.backward(base_speed)
-            sleep(1)
-            print('Turning started')
-            motors.turn(135, base_speed)
-
             print('Extinguishing done.')
             buzzer.off()
             return True
@@ -92,6 +87,9 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
             sleep(0.1)
             fire_extinguished = extinguish_fire(fire_coord, sensors_line, obstacles_detected)
 
+            fire_angle = FireFinder.coordinates_to_angle(fire_coord)
+            print(fire_angle)
+            fire_finding_timer = Timer()
             while not fire_extinguished:
                 sens = hardware_handler.get_sensors()
                 temps = cam.get_camera_data()
@@ -112,15 +110,28 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
                     print("Robot turning: ", max_fire_angle)
 
                     if max_fire_angle[0] > 20 or max_fire_angle[0] < -20:
+                        fire_finding_timer.pause()
+
                         if max_fire_angle[0] > 0:
                             motors.left(base_speed - 30)
                         else:
                             motors.right(base_speed - 30)
                     else:
+                        if fire_finding_timer.paused:
+                            fire_finding_timer.resume()
+
                         motors.slide(max_fire_angle[0] * -1, base_speed - 30)
 
                     fire_extinguished = extinguish_fire(fire_coord, sensors_line, obstacles_detected)
 
+            fire_finding_timer.stop()
+            print(fire_finding_timer.get_time_sec())
+            time_base_speed = fire_finding_timer.get_time_sec() * ((base_speed - 30) / base_speed)
+            print(time_base_speed)
+            motors.backward(base_speed - 30)
+            sleep(time_base_speed)
+
+            motors.turn(-fire_angle, base_speed)
             print('fire extinguished')
             return True
 
@@ -410,7 +421,7 @@ try:
 
         if fire_scan_timer.get_time_sec() > time_delay:
             scan_fire()
-            time_start = time()
+            fire_scan_timer.reset()
 
         else:
             motors.forward(base_speed)
