@@ -33,12 +33,14 @@ bool IMUSensor::init() {
   return imu.testConnection();
 }
 
-bool IMUSensor::initDMP(int XGyroOffset, int YGyroOffset, int ZGyroOffset, int ZAccelOffset) {
+bool IMUSensor::initDMP(int XGyroOffset, int YGyroOffset, int ZGyroOffset, int XAccelOffset, int YAccelOffset, int ZAccelOffset) {
   devStatus = imu.dmpInitialize();
 
   imu.setXGyroOffset(XGyroOffset);
   imu.setYGyroOffset(YGyroOffset);
   imu.setZGyroOffset(ZGyroOffset);
+  imu.setXAccelOffset(XAccelOffset);
+  imu.setYAccelOffset(YAccelOffset);
   imu.setZAccelOffset(ZAccelOffset);
 
   if (devStatus == 0) {

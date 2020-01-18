@@ -85,7 +85,7 @@ void setup() {
   digitalWrite(2, LOW);
 
   mpu.init();
-  mpu.initDMP(220, 76, -20, 2008);
+  mpu.initDMP(63, 40, -20, -957, 2311, 1710);
 
   xTaskCreatePinnedToCore(
     readMPU,

@@ -74,6 +74,7 @@ def extinguish_fire(fire_coord, line_detected, obstacles_detected):
 
             print('Extinguishing done.')
             buzzer.off()
+            cam.set_camera_event()
             return True
 
     return False
@@ -87,9 +88,6 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
             sleep(0.1)
             fire_extinguished = extinguish_fire(fire_coord, sensors_line, obstacles_detected)
 
-            fire_angle = FireFinder.coordinates_to_angle(fire_coord)
-            print(fire_angle)
-            fire_finding_timer = Timer()
             while not fire_extinguished:
                 sens = hardware_handler.get_sensors()
                 temps = cam.get_camera_data()
@@ -110,28 +108,15 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
                     print("Robot turning: ", max_fire_angle)
 
                     if max_fire_angle[0] > 20 or max_fire_angle[0] < -20:
-                        fire_finding_timer.pause()
-
                         if max_fire_angle[0] > 0:
                             motors.left(base_speed - 30)
                         else:
                             motors.right(base_speed - 30)
                     else:
-                        if fire_finding_timer.paused:
-                            fire_finding_timer.resume()
-
                         motors.slide(max_fire_angle[0] * -1, base_speed - 30)
 
                     fire_extinguished = extinguish_fire(fire_coord, sensors_line, obstacles_detected)
 
-            fire_finding_timer.stop()
-            print(fire_finding_timer.get_time_sec())
-            time_base_speed = fire_finding_timer.get_time_sec() * ((base_speed - 30) / base_speed)
-            print(time_base_speed)
-            motors.backward(base_speed - 30)
-            sleep(time_base_speed)
-
-            motors.turn(-fire_angle, base_speed)
             print('fire extinguished')
             return True
 
@@ -255,25 +240,36 @@ def avoid_line(fire_coord, sensors_line, obstacles_detected):
 
 
 # Avoids obstacles.
-def avoid_obstacle(fire_coord, sensors_line, obstacles_detected):
-    if not extinguish_fire(fire_coord, sensors_line, obstacles_detected):
-        if 0 in obstacles_detected:
-            motors.backward(base_speed)
-            sleep(0.1)
-            motors.turn(-90, base_speed)
+def avoid_obstacle(obstacles_detected):
+    if 0 in obstacles_detected:
+        motors.backward(base_speed)
+        sleep(0.1)
+        motors.turn(-90, base_speed - 30)
 
-            return True
-        elif 1 in obstacles:
-            motors.backward(base_speed)
-            sleep(0.1)
-            motors.turn(-45, base_speed)
-            return True
-        elif 3 in obstacles:
-            motors.backward(base_speed)
-            sleep(0.1)
-            motors.turn(45, base_speed)
+        motors.forward(base_speed)
+        sleep(1)
+        motors.turn(90, base_speed - 30)
 
-            return True
+        return True
+    elif 1 in obstacles:
+        motors.backward(base_speed)
+        sleep(0.1)
+        motors.turn(-45, base_speed - 30)
+
+        motors.forward(base_speed)
+        sleep(1)
+        motors.turn(45, base_speed - 30)
+        return True
+    elif 3 in obstacles:
+        motors.backward(base_speed)
+        sleep(0.1)
+        motors.turn(45, base_speed - 30)
+
+        motors.forward(base_speed)
+        sleep(1)
+        motors.turn(-45, base_speed - 30)
+
+        return True
 
     # No obstacle detected.
     return False
@@ -282,6 +278,7 @@ def avoid_obstacle(fire_coord, sensors_line, obstacles_detected):
 def scan_fire():
     buzzer.on()
     robot_angle = imu_sensor
+    robot_angle_start = robot_angle
 
     target_angle = robot_angle + 180
     target_angle = target_angle % 360
@@ -320,6 +317,15 @@ def scan_fire():
 
         if (abs(diff) < 5 and iteration == 1) or is_fire:
             motors.brake()
+
+            if is_fire:
+                motors.backward(base_speed)
+                sleep(0.5)
+
+                point_value = 0 if turn % 2 == 0 else 180
+
+                motors.point_to(point_value, base_speed - 30)
+
             print('Done')
             return
 
@@ -390,9 +396,41 @@ try:
         sensors_on_line = is_line(light_sensors)
         obstacles = is_obstacle(distance_sensors)
 
-        if 1 in sensors_on_line and 7 in sensors_on_line or 0 in sensors_on_line:
-            turn_value = -90 if turn % 2 == 0 else 90
+        edge = False
+        line_obstacle = False
 
+        if 0 in sensors_on_line:
+            line_timer = Timer()
+            while line_timer.get_time_ms() < 50:
+                sensors = hardware_handler.get_sensors()
+                try:
+                    light_sensors = sensors[0]
+                    distance_sensors = sensors[1]
+                    imu_sensor = sensors[2]
+                except TypeError:
+                    continue
+
+                if 1 or 7 in sensors_on_line:
+                    edge = True
+                    break
+                else:
+                    line_obstacle = True
+                    break
+
+        if line_obstacle:
+            motors.backward(base_speed)
+            sleep(0.3)
+            motors.turn(-45, base_speed - 30)
+            motors.forward(base_speed)
+            sleep(1)
+            motors.turn(45, base_speed - 30)
+
+        if edge:
+            align_value = 0 if turn % 2 == 0 else 180
+            motors.point_to(align_value, base_speed - 30)
+            turn_value = -90 if turn % 2 == 0 else 90
+            motors.backward(base_speed)
+            sleep(0.3)
             motors.turn(turn_value, base_speed - 30)
             motors.forward(base_speed)
 
@@ -424,6 +462,7 @@ try:
             fire_scan_timer.reset()
 
         else:
+            avoid_obstacle(obstacles)
             motors.forward(base_speed)
 
 except KeyboardInterrupt:
