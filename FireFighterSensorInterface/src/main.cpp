@@ -85,7 +85,7 @@ void setup() {
   digitalWrite(2, LOW);
 
   mpu.init();
-  mpu.initDMP(63, 40, -20, -957, 2311, 1710);
+  mpu.initDMP(63, 40, -20, -957, 2311, 1710);  // These values are device specific, to find them, use this program: https://wired.chillibasket.com/2015/01/calibrating-mpu6050/
 
   xTaskCreatePinnedToCore(
     readMPU,
