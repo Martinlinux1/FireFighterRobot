@@ -1,5 +1,7 @@
 import math
 
+import numpy as np
+
 import errors
 
 
@@ -11,14 +13,17 @@ class FireFinder:
             if temperatures[i] > threshold:
                 kernel_start = 0
                 kernel_end = 0
-                if i - 15 < 0:
-                    kernel_start = i - 15 - abs(i - 15)
-                if i + 15 >= len(temperatures):
-                    kernel_end = (i + 15) % (len(temperatures) - 1)
+                if i - kernel_size / 2 < 0:
+                    kernel_start = 0
+                if i + kernel_size / 2 >= len(temperatures):
+                    kernel_end = len(temperatures) - 1
+
                 kernel = temperatures[kernel_start:kernel_end]
                 n_high_temperatures = 0
+
+                kernel_average = np.average(kernel)
                 for j in kernel:
-                    if j > temperatures[i] - 5:
+                    if j > kernel_average:
                         n_high_temperatures += 1
 
                 if n_high_temperatures < kernel_size / 2:
