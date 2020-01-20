@@ -42,7 +42,7 @@ class FireFinder:
     @staticmethod
     def coordinates_to_angle(fire_coordinates):
         fire_angles = []
-        if fire_coordinates[2] == -1:
+        if fire_coordinates[1] == -1:
             raise errors.NoFireDetectedError
 
         if isinstance(fire_coordinates, list):
