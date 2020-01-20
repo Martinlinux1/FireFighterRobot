@@ -400,32 +400,14 @@ try:
         line_obstacle = False
 
         if 0 in sensors_on_line:
-            line_timer = Timer()
-            while line_timer.get_time_ms() < 50:
-                sensors = hardware_handler.get_sensors()
-                try:
-                    light_sensors = sensors[0]
-                    distance_sensors = sensors[1]
-                    imu_sensor = sensors[2]
-                except TypeError:
-                    continue
-
-                if 1 or 7 in sensors_on_line:
-                    edge = True
-                    break
-                else:
-                    line_obstacle = True
-                    break
-
-        if line_obstacle:
             motors.backward(base_speed)
-            sleep(0.3)
+            sleep(1)
             motors.turn(-45, base_speed - 30)
             motors.forward(base_speed)
             sleep(1)
             motors.turn(45, base_speed - 30)
 
-        if edge:
+        if 1 in sensors_on_line and 7 in sensors_on_line:
             align_value = 0 if turn % 2 == 0 else 180
             motors.point_to(align_value, base_speed - 30)
             turn_value = -90 if turn % 2 == 0 else 90
@@ -462,7 +444,7 @@ try:
             fire_scan_timer.reset()
 
         else:
-            avoid_obstacle(obstacles)
+            # avoid_obstacle(obstacles)
             motors.forward(base_speed)
 
 except KeyboardInterrupt:

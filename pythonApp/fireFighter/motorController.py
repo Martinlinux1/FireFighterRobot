@@ -108,10 +108,6 @@ class MotorController:
         target_angle = robot_angle + angle
         target_angle = target_angle % 360
 
-        print(robot_angle)
-        print(angle)
-        print(target_angle)
-
         if target_angle < 0:
             target_angle = target_angle + 360
 
