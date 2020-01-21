@@ -2,7 +2,6 @@ import multiprocessing
 import queue
 from time import sleep, time
 
-import numpy
 import serial
 from gpiozero import DigitalOutputDevice, Servo
 
@@ -66,6 +65,7 @@ def extinguish_fire(fire_coord, line_detected, obstacles_detected):
             buzzer.on()
             print("Extinguishing")
             motors.brake()
+
             servo_angle = MathUtils.valmap(max_fire_angle[1], -90, 90, -1, 1)
 
             servo.value = servo_angle
@@ -96,19 +96,19 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
             while not fire_extinguished:
                 sens = hardware_handler.get_sensors()
                 temps = cam.get_camera_data()
-                print(numpy.average(temps))
                 try:
                     l_sensors = sens[0]
                     d_sensors = sens[1]
                 except TypeError:
                     continue
 
-                fire_coord = FireFinder.is_fire(temps, threshold=threshold, kernel_size=kernel_size)
+                fire_coord = FireFinder.is_fire(temps, threshold=threshold)
                 if fire_coord[0]:
                     buzzer.toggle()
                     sensors_line = is_line(l_sensors)
                     obstacles_detected = is_obstacle(d_sensors)
-
+                    print(sensors_line)
+                    print(obstacles_detected)
                     max_fire_angle = find_max_fire(fire_coord)
 
                     print("Robot turning: ", max_fire_angle)
@@ -307,7 +307,7 @@ def scan_fire():
         temperatures = cam.get_camera_data()
         sleep(0.05)
         buzzer.off()
-        fire_coordinates = FireFinder.is_fire(temperatures, threshold=threshold, kernel_size=kernel_size)
+        fire_coordinates = FireFinder.is_fire(temperatures, threshold=threshold)
         is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
 
         if (abs(diff) < 5 and iteration == 1) or is_fire:
@@ -378,7 +378,7 @@ try:
         except TypeError:
             continue
 
-        fire_coordinates = FireFinder.is_fire(temperatures, threshold=threshold, kernel_size=kernel_size)
+        fire_coordinates = FireFinder.is_fire(temperatures, threshold=threshold)
         sensors_on_line = is_line(light_sensors)
         obstacles = is_obstacle(distance_sensors)
 
@@ -389,12 +389,12 @@ try:
         is_fire = find_fire(fire_coordinates, sensors_on_line, obstacles)
 
         any_line = avoid_line(fire_coordinates, sensors_on_line, obstacles)
-        # are_obstacles = avoid_obstacle(fire_coordinates, sensors_on_line, obstacles)
+        are_obstacles = avoid_obstacle(fire_coordinates, sensors_on_line, obstacles)
 
-        if (not is_fire) and (not any_line):
+        if (not is_fire) and (not any_line) and (not are_obstacles):
             motors.forward(base_speed)
 
-            if fire_scan_timer.get_time_sec() > 5:
+            if fire_scan_timer.get_time_sec() > 3:
                 scan_fire()
                 fire_scan_timer.reset()
         else:

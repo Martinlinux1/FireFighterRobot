@@ -1,34 +1,23 @@
 import math
 
-import numpy as np
-
 import errors
 
 
 class FireFinder:
     @staticmethod
-    def is_fire(temperatures, threshold: int, kernel_size):
+    def is_fire(temperatures, threshold: int):
         fire_positions = []
         for i in range(len(temperatures)):
-            if temperatures[i] > threshold:
-                kernel_start = 0
-                kernel_end = 0
-                if i - kernel_size / 2 < 0:
-                    kernel_start = 0
-                if i + kernel_size / 2 >= len(temperatures):
-                    kernel_end = len(temperatures) - 1
+            if i == 0:
+                no_fire_pixels_around = True
+            elif i < 32:
+                no_fire_pixels_around = temperatures[i - 1] < threshold
+            else:
+                no_fire_pixels_around = temperatures[i - 1] < threshold and temperatures[i - 32] < \
+                                        threshold and temperatures[i - 33] < threshold
 
-                kernel = temperatures[kernel_start:kernel_end]
-                n_high_temperatures = 0
-
-                kernel_average = np.average(kernel)
-                for j in kernel:
-                    if j > kernel_average:
-                        n_high_temperatures += 1
-
-                if n_high_temperatures < kernel_size / 2:
-                    fire_positions.append([i % 32, math.floor(i / 32), temperatures[i]])
-
+            if temperatures[i] >= threshold and no_fire_pixels_around:
+                fire_positions.append([i % 32, math.floor(i / 32), temperatures[i]])
         if fire_positions:
             return True, fire_positions
         else:
