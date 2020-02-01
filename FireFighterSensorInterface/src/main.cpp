@@ -4,7 +4,7 @@
  * logic unit, that controls the robot.
  * 
  * Creator: Martinlinux
- * Version: 0.2
+ * Version: 1.0
  */
 
 #include <Arduino.h>
