@@ -61,6 +61,11 @@ bool CommunicationHandler::decode(String message, int *messageType, String *data
       *messageType = TYPE_MOTORS_BRAKE;
     }
 
+    else if (messageCharArr[i] == CommunicationHandler::encoder) {
+      *data = CommunicationHandler::getDataFromMessage(message);
+      *messageType = TYPE_ENCODER;
+    }
+
     // Invalid message.
     else {
       return false;
@@ -112,6 +117,14 @@ String CommunicationHandler::encode(int messageType, String data) {
 
   else if (messageType == TYPE_MOTORS_BRAKE) {
     message += CommunicationHandler::motorsBrake;
+  }
+
+  else if (messageType == TYPE_MOTORS_BRAKE) {
+    message += CommunicationHandler::motorsBrake;
+  }
+
+  else if (messageType == TYPE_ENCODER) {
+    message += CommunicationHandler::encoder;
   }
 
   // Invalid message type.

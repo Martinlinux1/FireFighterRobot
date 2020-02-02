@@ -5,7 +5,7 @@ class Encoder {
   public:
     Encoder(int adress);
     int getDegrees();
-    int getRotations();
+    double getRotations();
   private:
     int address;
 };

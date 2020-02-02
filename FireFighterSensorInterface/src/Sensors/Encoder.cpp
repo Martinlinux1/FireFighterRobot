@@ -15,6 +15,6 @@ int Encoder::getDegrees() {
   return encoderData.toInt();
 }
 
-int Encoder::getRotations() {
+double Encoder::getRotations() {
   return Encoder::getDegrees() / 360;
 }

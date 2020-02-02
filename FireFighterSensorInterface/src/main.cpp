@@ -8,11 +8,13 @@
  */
 
 #include <Arduino.h>
+#include <Wire.h>
 #include <qtr-sensors-arduino-master/QTRSensors.h>
 #include <Motors/Motor.h>
 #include <Sensors/LightSensor.h>
 #include <Sensors/DistanceSensor.h>
 #include <Sensors/IMUSensor.h>
+#include <Sensors/Encoder.h>
 #include <communicationHandler.h>
 
 
@@ -47,6 +49,13 @@ DistanceSensor distanceSensors[5] = {
   DistanceSensor(distanceSensorPins[4])
 };
 
+Encoder encoders[4] = {
+  Encoder(0x10),
+  Encoder(0x11),
+  Encoder(0x12),
+  Encoder(0x13)
+};
+
 IMUSensor mpu(imuInterruptPin);
 
 // Creates communicationHandler class instance.
@@ -65,6 +74,7 @@ void readMPU(void * param) {
 void setup() {
   // Serial link setup.
   Serial.begin(115200);
+  Wire.begin();
 
   // Motors pins setup.
   int k = 0;
@@ -141,6 +151,16 @@ void loop() {
         String IMUSensorDataEncoded = commHandler.encode(TYPE_IMU, IMUSensorData);
 
         responseEncoded = '~' + lightSensorsDataEncoded + '\t' + distanceSensorsDataEncoded + '\t' + IMUSensorDataEncoded;
+      }
+
+      else if (messageType == TYPE_ENCODER) {
+        String encodersData;
+
+        for (int i = 0; i < 4; i++) {
+          encodersData += String(encoders[i].getRotations()) + ",";
+        }
+
+        responseEncoded = "~" + commHandler.encode(TYPE_ENCODER, encodersData);
       }
 
       else if (messageType == TYPE_MOTOR) {
