@@ -93,6 +93,7 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
             motors.brake()
             sleep(0.1)
             fire_extinguished = extinguish_fire(fire_coord, sensors_line, obstacles_detected)
+            last_candle = [False]
             while not fire_extinguished:
                 sens = hardware_handler.get_sensors()
                 temps = cam.get_camera_data()
@@ -110,7 +111,7 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
                     print(sensors_line)
                     print(obstacles_detected)
                     max_fire_angle = find_max_fire(fire_coord)
-
+                    last_candle = [max_fire_angle, Timer()]
                     print("Robot turning: ", max_fire_angle)
 
                     if max_fire_angle[0] > 20 or max_fire_angle[0] < -20:
@@ -122,6 +123,32 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
                         motors.slide(max_fire_angle[0] * -1, base_speed - 30)
 
                     fire_extinguished = extinguish_fire(fire_coord, sensors_line, obstacles_detected)
+
+                if last_candle:
+                    if last_candle[1].get_time_ms() < 500:
+                        while not (0 in l_sensors):
+                            sens = hardware_handler.get_sensors()
+                            try:
+                                l_sensors = sens[0]
+                                d_sensors = sens[1]
+                            except TypeError:
+                                continue
+
+                            motors.forward(base_speed)
+
+                        cam.clear_camera_event()
+                        print("Extinguishing")
+                        motors.brake()
+
+                        servo.value = -35
+                        fan.on()
+                        sleep(5)
+                        fan.off()
+
+                        motors.backward(base_speed)
+                        sleep(1)
+                        motors.turn(135, base_speed)
+                        cam.set_camera_event()
 
             print('fire extinguished')
             return True
@@ -362,7 +389,6 @@ base_speed = 100
 sleep(5)
 
 fire_scan_timer = Timer()
-
 turn = 0
 
 try:
