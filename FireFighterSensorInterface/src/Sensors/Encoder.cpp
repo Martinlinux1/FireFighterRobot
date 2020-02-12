@@ -18,3 +18,9 @@ int Encoder::getDegrees() {
 double Encoder::getRotations() {
   return Encoder::getDegrees() / 360;
 }
+
+void Encoder::reset() {
+  Wire.beginTransmission(Encoder::address);
+  Wire.write("R");
+  Wire.endTransmission();
+}

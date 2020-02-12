@@ -6,6 +6,7 @@ class Encoder {
     Encoder(int adress);
     int getDegrees();
     double getRotations();
+    void reset();
   private:
     int address;
 };

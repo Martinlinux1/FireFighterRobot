@@ -156,6 +156,12 @@ void loop() {
       else if (messageType == TYPE_ENCODER) {
         String encodersData;
 
+        if (data == "R") {
+          for (int i = 0; i < 4; i++) {
+            encoders[i].reset();
+          }
+        }
+
         for (int i = 0; i < 4; i++) {
           encodersData += String(encoders[i].getRotations()) + ",";
         }
