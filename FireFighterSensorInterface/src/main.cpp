@@ -132,10 +132,14 @@ void loop() {
         String lightSensorsData = "";
         String distanceSensorsData = "";
         String IMUSensorData = "";
+        String encodersData = "";
 
         for (int i = 0; i < 8; i++) {
           lightSensorsData += String(sensorValues[i]) + ",";
           if (i < 5) {
+            if (i < 4) {
+              encodersData += String(encoders[i].getRotations());
+            }
             distanceSensorsData += String(distanceSensors[i].read()) + ",";
           }
         }
@@ -160,6 +164,8 @@ void loop() {
           for (int i = 0; i < 4; i++) {
             encoders[i].reset();
           }
+
+          responseEncoded = "~" + message;
         }
 
         for (int i = 0; i < 4; i++) {
