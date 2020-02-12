@@ -4,14 +4,17 @@ import numpy as np
 
 
 class HardwareHandler:
-    def __init__(self, sensors_reader, motor_writer):
+    def __init__(self, sensors_reader, motor_writer, encoders):
         self._sensors_reader = sensors_reader
         self._motor_writer = motor_writer
+        self._encoders = encoders
 
         self._sensors_pipe_reader, self._sensors_pipe_writer = Pipe(duplex=False)
         self._motors_pipe_reader, self._motors_pipe_writer = Pipe(duplex=False)
+        self._encoders_pipe_main, self._encoders_pipe_update = Pipe(duplex=True)
 
         self._sensors_read_event = Event()
+        self._encoders_read_event = Event()
 
         self._sensors_read_event.set()
 
@@ -37,6 +40,27 @@ class HardwareHandler:
             self._imu_sensor = sensors_data[2][1]
 
             self._sensors_pipe_writer.send([self._light_sensors, self._distance_sensors, self._imu_sensor])
+
+    def update_encoders(self):
+        if self._encoders_pipe_update.poll():
+            if self._encoders_pipe_update.recv() == 'R':
+                self._encoders.reset_encoders()
+
+        if self._encoders_read_event.is_set():
+            self._encoders_read_event.clear()
+            encoders_data = self._encoders.get_encoders_data()
+
+            self._encoders_pipe_update.send(encoders_data)
+
+    def get_encoders(self):
+        if self._encoders_pipe_main.poll():
+            encoders_data = self._encoders_pipe_main.recv()
+            self._encoders_read_event.set()
+
+            return encoders_data
+
+    def reset_encoders(self):
+        self._encoders_pipe_main.send('R')
 
     def get_sensors(self):
         if self._sensors_pipe_reader.poll():

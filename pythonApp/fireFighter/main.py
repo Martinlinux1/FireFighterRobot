@@ -7,6 +7,7 @@ from gpiozero import DigitalOutputDevice, Servo
 
 import cameraReader
 import communicationHandler
+import encoders
 import hardwarehandler
 import motorController
 import motorsWriter
@@ -26,6 +27,7 @@ def read_camera(cam_reader: cameraReader.CameraReader):
 def robot_data_handler(c):
     while True:
         c.update_sensors()
+        c.update_encoders()
         c.update_motors()
 
 
@@ -370,8 +372,10 @@ threshold = 35
 
 sensors_reader = sensorsReader.SensorsReader(comm_handler)
 motors_writer = motorsWriter.MotorsWriter(comm_handler)
+encoders = encoders.Encoders(comm_handler)
 
-hardware_handler: hardwarehandler.HardwareHandler = hardwarehandler.HardwareHandler(sensors_reader, motors_writer)
+hardware_handler: hardwarehandler.HardwareHandler = hardwarehandler.HardwareHandler(sensors_reader, motors_writer,
+                                                                                    encoders)
 
 motors = motorController.MotorController(hardware_handler, 0.05)
 
