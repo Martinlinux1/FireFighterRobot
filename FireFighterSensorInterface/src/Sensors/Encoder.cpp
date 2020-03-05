@@ -9,15 +9,19 @@ int Encoder::getDegrees() {
 }
 
 double Encoder::getRotations() {
-  Wire.requestFrom(Encoder::address, 5);
-  char receivedData[5];
-  
+  Wire.requestFrom(Encoder::address, 4);
+
+  union longToBytes {
+    char buffer[4];
+    long value;
+  } converter;
+
   for (int i = 0; Wire.available(); i++) {
-    receivedData[i] = Wire.read();
+    converter.buffer[i] = Wire.read();
   }
-  int encoderDataRaw = receivedData[0] + (receivedData[1] << 8) + (receivedData[2] << 16) + (receivedData[3] << 24);
-  encoderDataRaw = receivedData[5] == 1 ? encoderDataRaw : -encoderDataRaw;
-  
+
+  long encoderDataRaw = converter.value;
+
   return encoderDataRaw / 8 / 30;
 }
 
