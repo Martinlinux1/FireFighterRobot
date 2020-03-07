@@ -1,0 +1,16 @@
+setup.py
+fireFighter.egg-info/PKG-INFO
+fireFighter.egg-info/SOURCES.txt
+fireFighter.egg-info/dependency_links.txt
+fireFighter.egg-info/requires.txt
+fireFighter.egg-info/top_level.txt
+test/__init__.py
+test/cameraClassTest.py
+test/cameraTest.py
+test/distanceSensorsTest.py
+test/encodersTest.py
+test/fakeCamera.py
+test/fakeSerial.py
+test/motorTest.py
+test/serialCommTest.py
+test/someMotorTest.py
