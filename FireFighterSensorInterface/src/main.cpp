@@ -30,6 +30,7 @@ int motorChannels[4][2] = {
 };
 
 int imuInterruptPin = 15;
+bool resetEncoders = false;
 
 // Creates motor class instance.
 Motor motors[4] = {
@@ -50,13 +51,15 @@ DistanceSensor distanceSensors[5] = {
 };
 
 Encoder encoders[4] = {
-  Encoder(0x10),
-  Encoder(0x11),
-  Encoder(0x12),
-  Encoder(0x13)
+  Encoder(0x08, 20, 30),
+  Encoder(0x09, 20, 30),
+  Encoder(0x0A, 20, 30),
+  Encoder(0x0B, 20, 30)
 };
 
 IMUSensor mpu(imuInterruptPin);
+
+double encoderValues[4];
 
 // Creates communicationHandler class instance.
 CommunicationHandler commHandler;
@@ -66,6 +69,20 @@ TaskHandle_t readIMUSensor;
 void readMPU(void * param) {
   for (;;) {
     mpu.readIMU();
+    for (int i = 0; i < 4; i++) {
+      if (resetEncoders) {
+        encoders[i].reset();
+      }
+      else {
+        if (i == 1 || i == 2) {
+          encoderValues[i] = -encoders[i].getRotations();
+        }
+        else {
+          encoderValues[i] = encoders[i].getRotations();
+        }
+      }
+    }
+    resetEncoders = false;
     vTaskDelay(10 / portTICK_PERIOD_MS);
   }
 }
@@ -161,16 +178,16 @@ void loop() {
         String encodersData;
 
         if (data == "R") {
-          for (int i = 0; i < 4; i++) {
-            encoders[i].reset();
-          }
+          resetEncoders = true;
 
           responseEncoded = "~" + message;
         }
 
         for (int i = 0; i < 4; i++) {
-          encodersData += String(encoders[i].getRotations()) + ",";
+          encodersData += String(encoderValues[i]) + ",";
         }
+
+        encodersData = encodersData.substring(0, encodersData.lastIndexOf(','));
 
         responseEncoded = "~" + commHandler.encode(TYPE_ENCODER, encodersData);
       }

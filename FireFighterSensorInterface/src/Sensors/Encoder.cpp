@@ -1,7 +1,9 @@
 #include "Encoder.h"
 
-Encoder::Encoder(int address) {
+Encoder::Encoder(int address, int countsPerRevolution, int gearbox) {
   Encoder::address = address;
+  Encoder::countsPerRevolution = countsPerRevolution;
+  Encoder::gearbox = gearbox;
 }
 
 int Encoder::getDegrees() {
@@ -10,19 +12,16 @@ int Encoder::getDegrees() {
 
 double Encoder::getRotations() {
   Wire.requestFrom(Encoder::address, 4);
-
-  union longToBytes {
-    char buffer[4];
-    long value;
-  } converter;
+  byte buffer[4];
 
   for (int i = 0; Wire.available(); i++) {
-    converter.buffer[i] = Wire.read();
+    buffer[i] = Wire.read();
   }
-
-  long encoderDataRaw = converter.value;
-
-  return encoderDataRaw / 8 / 30;
+  long value = buffer[3];
+  value = value * 256 + buffer[2];
+  value = value * 256 + buffer[1];
+  value = value * 256 + buffer[0];
+  return double(double(value) / double(Encoder::countsPerRevolution) / double(Encoder::gearbox));
 }
 
 void Encoder::reset() {
