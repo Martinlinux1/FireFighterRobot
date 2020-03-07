@@ -26,7 +26,7 @@ class MotorsHandler(HardwareHandler):
         if self._motors[3]:
             self._hardware.write_motor('D', self._motors[3][0], self._motors[3][1])
 
-    def set(self, motor, direction, speed):
+    def set_motor(self, motor, direction, speed):
         if motor == 'A':
             self._motorA = [direction, speed]
         elif motor == 'B':

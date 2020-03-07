@@ -8,10 +8,12 @@ from gpiozero import DigitalOutputDevice, Servo
 import cameraReader
 import communicationHandler
 import encoders
-import hardwarehandler
 import motorController
 import motorsWriter
 import sensorsReader
+import sensorsHandler
+import motorsHandler
+import encodersHandler
 from firefinder import FireFinder
 from mathUtils import MathUtils
 from pyUSB2FIR.pyusb2fir.usb2fir import USB2FIR
@@ -24,11 +26,11 @@ def read_camera(cam_reader: cameraReader.CameraReader):
 
 
 # Updating robot data.
-def robot_data_handler(c):
+def robot_data_handler(sens, mot, enc):
     while True:
-        c.update_sensors()
-        c.update_encoders()
-        c.update_motors()
+        sens.update()
+        mot.update()
+        enc.update()
 
 
 def find_max_fire(fire_coord):
@@ -97,7 +99,7 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
             fire_extinguished = extinguish_fire(fire_coord, sensors_line, obstacles_detected)
             last_candle = [False]
             while not fire_extinguished:
-                sens = hardware_handler.get_sensors()
+                sens = sensorsHandler.get()
                 temps = cam.get_camera_data()
                 try:
                     l_sensors = sens[0]
@@ -129,7 +131,7 @@ def find_fire(fire_coord, sensors_line, obstacles_detected):
                 if last_candle:
                     if last_candle[1].get_time_ms() < 500:
                         while not (0 in l_sensors):
-                            sens = hardware_handler.get_sensors()
+                            sens = sensorsHandler.get()
                             try:
                                 l_sensors = sens[0]
                                 d_sensors = sens[1]
@@ -321,7 +323,7 @@ def scan_fire():
     while True:
         sensors_data = []
         while not sensors_data:
-            sensors_data = hardware_handler.get_sensors()
+            sensors_data = sensorsHandler.get()
 
         light_sensors = sensors_data[0]
         distance_sensors = sensors_data[1]
@@ -372,12 +374,13 @@ threshold = 35
 
 sensors_reader = sensorsReader.SensorsReader(comm_handler)
 motors_writer = motorsWriter.MotorsWriter(comm_handler)
-encoders = encoders.Encoders(comm_handler)
+encoders_reader = encoders.Encoders(comm_handler)
 
-hardware_handler: hardwarehandler.HardwareHandler = hardwarehandler.HardwareHandler(sensors_reader, motors_writer,
-                                                                                    encoders)
+sensorsHandler = sensorsHandler.SensorsHandler(sensors_reader)
+motorsHandler = motorsHandler.MotorsHandler(motors_writer)
+encodersHandler = encodersHandler.EncodersHandler(encoders_reader)
 
-motors = motorController.MotorController(hardware_handler, 0.05)
+motors = motorController.MotorController(motorsHandler, 0.05)
 
 line_history = queue.Queue()
 
@@ -385,7 +388,8 @@ camera_reading_process = multiprocessing.Process(target=read_camera, args=[cam])
 camera_reading_process.daemon = True
 camera_reading_process.start()
 
-robot_logic_process = multiprocessing.Process(target=robot_data_handler, args=[hardware_handler])
+robot_logic_process = multiprocessing.Process(target=robot_data_handler, args=[sensorsHandler, motorsHandler,
+                                                                               encodersHandler])
 robot_logic_process.daemon = True
 robot_logic_process.start()
 
@@ -398,7 +402,7 @@ turn = 0
 try:
     while True:
         buzzer.off()
-        sensors = hardware_handler.get_sensors()
+        sensors = sensorsHandler.get()
         temperatures = cam.get_camera_data()
 
         try:

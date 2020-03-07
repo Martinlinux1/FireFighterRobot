@@ -5,8 +5,8 @@ import mathUtils
 class MotorController:
     """Handles 4 motors with mecanum wheels motion."""
 
-    def __init__(self, hardware_handler, brake_delay):
-        self._handler: hardwarehandler.HardwareHandler = hardware_handler
+    def __init__(self, motors_handler, brake_delay):
+        self._handler = motors_handler
         self._mathUtils = mathUtils.MathUtils()
         self._brake_delay = brake_delay
 
