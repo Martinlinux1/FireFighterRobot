@@ -17,6 +17,7 @@ class HardwareHandler:
         self._encoders_read_event = Event()
 
         self._sensors_read_event.set()
+        self._encoders_read_event.set()
 
         self._light_sensors = np.int(8)
         self._distance_sensors = np.int(5)
@@ -24,6 +25,7 @@ class HardwareHandler:
 
         self._sensors = [0, 0, 0]
         self._motors = [0, 0, 0, 0]
+        self._encoders_data = [0, 0, 0, 0]
 
         self._motorA = []
         self._motorB = []
@@ -48,16 +50,16 @@ class HardwareHandler:
 
         if self._encoders_read_event.is_set():
             self._encoders_read_event.clear()
-            encoders_data = self._encoders.get_encoders_data()
+            encoders_data = self._encoders.get_encoders_data()[1]
 
             self._encoders_pipe_update.send(encoders_data)
 
     def get_encoders(self):
         if self._encoders_pipe_main.poll():
-            encoders_data = self._encoders_pipe_main.recv()
+            self._encoders_data = self._encoders_pipe_main.recv()
             self._encoders_read_event.set()
 
-            return encoders_data
+            return self._encoders_data
 
     def reset_encoders(self):
         self._encoders_pipe_main.send('R')
