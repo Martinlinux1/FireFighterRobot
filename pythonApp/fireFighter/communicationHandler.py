@@ -18,6 +18,7 @@ class CommunicationHandler:
         self.echo = 'E'
         self.sensors_data = 'A'
         self.motors_brake = 'B'
+        self.encoders = 'N'
 
         self._messageStart = '<'
         self._messageEnd = '>'
@@ -85,6 +86,14 @@ class CommunicationHandler:
                     return self.imuSensor, 2 * 180 + angle
                 else:
                     return self.imuSensor, angle
+            elif message[1] == self.encoders:
+                data = message[message.find('{') + 1:message.find('}', 3)]
+
+                data = np.array(data.split(','))
+
+                encoders_values = data.astype(float)
+
+                return self.encoders, encoders_values
 
             elif message[1] == self.motor:
                 return self.motor, message

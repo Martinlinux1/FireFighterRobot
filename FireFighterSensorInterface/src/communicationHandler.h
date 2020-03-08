@@ -34,6 +34,7 @@
 #define TYPE_LIGHT_SENSORS_CALIBRATION 5
 #define TYPE_DATA 6
 #define TYPE_MOTORS_BRAKE 7
+#define TYPE_ENCODER 8
 
 
 class CommunicationHandler {
@@ -60,6 +61,7 @@ class CommunicationHandler {
     const char motor = 'M';
     const char echo = 'E';
     const char data = 'A';
+    const char encoder = 'N';
     const char lightSensorsCalibration = 'C';
     const char motorsBrake = 'B';
     const char messageStart = '<';
