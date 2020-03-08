@@ -9,6 +9,6 @@ class IMUSensor {
     float getPitchAngle();
     float getRollAngle();
     bool init();
-    bool initDMP(int XGyroOffset, int YGyroOffset, int ZGyroOffset, int ZAccelOffset);
+    bool initDMP(int XGyroOffset, int YGyroOffset, int ZGyroOffset, int XAccelOffset, int YAccelOffset, int ZAccelOffset);
   private:
 };

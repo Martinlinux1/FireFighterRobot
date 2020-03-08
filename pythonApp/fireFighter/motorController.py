@@ -108,10 +108,6 @@ class MotorController:
         target_angle = robot_angle + angle
         target_angle = target_angle % 360
 
-        print(robot_angle)
-        print(angle)
-        print(target_angle)
-
         if target_angle < 0:
             target_angle = target_angle + 360
 
@@ -133,6 +129,17 @@ class MotorController:
                 self.brake()
                 return
 
+    def point_to(self, angle, speed):
+        sensors_data = []
+
+        while not sensors_data:
+            sensors_data = self._handler.get_sensors()
+
+        robot_angle = sensors_data[2]
+        diff = angle - robot_angle
+
+        self.turn(diff, speed)
+
     def turn_manual(self, direction: str, speed: int):
         if direction == 'L':
             self.left(speed)
@@ -140,6 +147,7 @@ class MotorController:
             self.right(speed)
 
     """Stops all motors."""
+
     def brake(self):
         self._handler.set_motor('A', 'F', 0)
         self._handler.set_motor('B', 'F', 0)

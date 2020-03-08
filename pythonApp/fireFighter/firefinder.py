@@ -8,7 +8,6 @@ class FireFinder:
     def is_fire(temperatures, threshold: int):
         fire_positions = []
         for i in range(len(temperatures)):
-            # print(self._temperatures[i])
             if i == 0:
                 no_fire_pixels_around = True
             elif i < 32:
@@ -37,7 +36,7 @@ class FireFinder:
     @staticmethod
     def coordinates_to_angle(fire_coordinates):
         fire_angles = []
-        if fire_coordinates[2] == -1:
+        if fire_coordinates[1] == -1:
             raise errors.NoFireDetectedError
 
         if isinstance(fire_coordinates, list):

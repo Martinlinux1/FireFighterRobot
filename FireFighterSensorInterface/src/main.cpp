@@ -1,18 +1,20 @@
 /**
- * The sensor interface of fire fighter robot. Reads light, distance(not implemented yet), 
- * angle(not implemented yet) of the robot and controls the motors(4). It communicates with Raspberry Pi 
+ * The sensor interface of fire fighter robot. Reads light, distance, 
+ * angle of the robot and controls the motors(4). It communicates with Raspberry Pi 
  * logic unit, that controls the robot.
  * 
  * Creator: Martinlinux
- * Version: 0.2
+ * Version: 1.0
  */
 
 #include <Arduino.h>
+#include <Wire.h>
 #include <qtr-sensors-arduino-master/QTRSensors.h>
 #include <Motors/Motor.h>
 #include <Sensors/LightSensor.h>
 #include <Sensors/DistanceSensor.h>
 #include <Sensors/IMUSensor.h>
+#include <Sensors/Encoder.h>
 #include <communicationHandler.h>
 
 
@@ -28,6 +30,7 @@ int motorChannels[4][2] = {
 };
 
 int imuInterruptPin = 15;
+bool resetEncoders = false;
 
 // Creates motor class instance.
 Motor motors[4] = {
@@ -47,7 +50,16 @@ DistanceSensor distanceSensors[5] = {
   DistanceSensor(distanceSensorPins[4])
 };
 
+Encoder encoders[4] = {
+  Encoder(0x08, 20, 30),
+  Encoder(0x09, 20, 30),
+  Encoder(0x0A, 20, 30),
+  Encoder(0x0B, 20, 30)
+};
+
 IMUSensor mpu(imuInterruptPin);
+
+double encoderValues[4];
 
 // Creates communicationHandler class instance.
 CommunicationHandler commHandler;
@@ -57,6 +69,20 @@ TaskHandle_t readIMUSensor;
 void readMPU(void * param) {
   for (;;) {
     mpu.readIMU();
+    for (int i = 0; i < 4; i++) {
+      if (resetEncoders) {
+        encoders[i].reset();
+      }
+      else {
+        if (i == 1 || i == 2) {
+          encoderValues[i] = -encoders[i].getRotations();
+        }
+        else {
+          encoderValues[i] = encoders[i].getRotations();
+        }
+      }
+    }
+    resetEncoders = false;
     vTaskDelay(10 / portTICK_PERIOD_MS);
   }
 }
@@ -65,6 +91,7 @@ void readMPU(void * param) {
 void setup() {
   // Serial link setup.
   Serial.begin(115200);
+  Wire.begin();
 
   // Motors pins setup.
   int k = 0;
@@ -85,7 +112,7 @@ void setup() {
   digitalWrite(2, LOW);
 
   mpu.init();
-  mpu.initDMP(220, 76, -20, 2008);
+  mpu.initDMP(63, 40, -20, -957, 2311, 1710);  // These values are device specific, to find them, use this program: https://wired.chillibasket.com/2015/01/calibrating-mpu6050/
 
   xTaskCreatePinnedToCore(
     readMPU,
@@ -122,10 +149,14 @@ void loop() {
         String lightSensorsData = "";
         String distanceSensorsData = "";
         String IMUSensorData = "";
+        String encodersData = "";
 
         for (int i = 0; i < 8; i++) {
           lightSensorsData += String(sensorValues[i]) + ",";
           if (i < 5) {
+            if (i < 4) {
+              encodersData += String(encoders[i].getRotations());
+            }
             distanceSensorsData += String(distanceSensors[i].read()) + ",";
           }
         }
@@ -141,6 +172,24 @@ void loop() {
         String IMUSensorDataEncoded = commHandler.encode(TYPE_IMU, IMUSensorData);
 
         responseEncoded = '~' + lightSensorsDataEncoded + '\t' + distanceSensorsDataEncoded + '\t' + IMUSensorDataEncoded;
+      }
+
+      else if (messageType == TYPE_ENCODER) {
+        String encodersData;
+
+        if (data == "R") {
+          resetEncoders = true;
+
+          responseEncoded = "~" + message;
+        }
+
+        for (int i = 0; i < 4; i++) {
+          encodersData += String(encoderValues[i]) + ",";
+        }
+
+        encodersData = encodersData.substring(0, encodersData.lastIndexOf(','));
+
+        responseEncoded = "~" + commHandler.encode(TYPE_ENCODER, encodersData);
       }
 
       else if (messageType == TYPE_MOTOR) {
