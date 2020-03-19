@@ -6,14 +6,9 @@ import serial
 from gpiozero import DigitalOutputDevice, Servo
 
 import cameraReader
-import communicationHandler
-import encoders
+from IO import communicationInterface, sensorsReader, motorsWriter, encodersInterface
 import motorController
-import motorsWriter
-import sensorsReader
-import sensorsHandler
-import motorsHandler
-import encodersHandler
+from handlers import motorsHandler, sensorsHandler, encodersHandler
 from firefinder import FireFinder
 from mathUtils import MathUtils
 from pyUSB2FIR.pyusb2fir.usb2fir import USB2FIR
@@ -367,14 +362,14 @@ thermal_camera = USB2FIR(refreshRate=4)
 serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
 
 cam = cameraReader.CameraReader(thermal_camera)
-comm_handler = communicationHandler.CommunicationHandler(serial_port)
+comm_interface = communicationInterface.CommunicationInterface(serial_port)
 
 kernel_size = 5 * 5
 threshold = 35
 
-sensors_reader = sensorsReader.SensorsReader(comm_handler)
-motors_writer = motorsWriter.MotorsWriter(comm_handler)
-encoders_reader = encoders.Encoders(comm_handler)
+sensors_reader = sensorsReader.SensorsReader(comm_interface)
+motors_writer = motorsWriter.MotorsWriter(comm_interface)
+encoders_reader = encodersInterface.EncodersInterface(comm_interface)
 
 sensorsHandler = sensorsHandler.SensorsHandler(sensors_reader)
 motorsHandler = motorsHandler.MotorsHandler(motors_writer)

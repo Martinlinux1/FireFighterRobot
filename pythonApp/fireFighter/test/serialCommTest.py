@@ -1,6 +1,5 @@
 import unittest
-import communicationHandler
-import test.fakeSerial
+from IO import communicationInterface
 
 
 class MyTestCase(unittest.TestCase):
@@ -9,7 +8,7 @@ class MyTestCase(unittest.TestCase):
 
         fakeserial.set_message_to_send("<M{A,F,100}>")
 
-        serial = communicationHandler.CommunicationHandler(fakeserial)
+        serial = communicationInterface.CommunicationInterface(fakeserial)
 
         serial.write_motor('A', 'F', 100)
 
@@ -21,7 +20,7 @@ class MyTestCase(unittest.TestCase):
 
         fakeserial.set_message_to_send("<L{1,1024}>")
 
-        serial = communicationHandler.CommunicationHandler(fakeserial)
+        serial = communicationInterface.CommunicationInterface(fakeserial)
 
         lightSensorData = serial.get_light_sensor_data(0)
 
@@ -32,7 +31,7 @@ class MyTestCase(unittest.TestCase):
 
         fakeserial.set_message_to_send("<D{0,43}>")
 
-        serial = communicationHandler.CommunicationHandler(fakeserial)
+        serial = communicationInterface.CommunicationInterface(fakeserial)
 
         distanceSensorData = serial.get_distance_sensor_data(0)
 
@@ -43,7 +42,7 @@ class MyTestCase(unittest.TestCase):
 
         fakeserial.set_message_to_send("<I{20}>")
 
-        serial = communicationHandler.CommunicationHandler(fakeserial)
+        serial = communicationInterface.CommunicationInterface(fakeserial)
 
         imu_data = serial.get_imu_sensor_data()
 

@@ -2,16 +2,13 @@ from time import sleep
 
 import serial
 
-import communicationHandler
-import hardwarehandler
+from IO import communicationInterface, sensorsReader, motorsWriter
+from handlers import hardwarehandler
 import motorController
-import motorsWriter
-import sensorsReader
-
 
 serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
 
-comm_handler = communicationHandler.CommunicationHandler(serial_port)
+comm_handler = communicationInterface.CommunicationInterface(serial_port)
 
 sensors_reader = sensorsReader.SensorsReader(comm_handler)
 motors_writer = motorsWriter.MotorsWriter(comm_handler)

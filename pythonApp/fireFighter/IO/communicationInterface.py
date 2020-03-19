@@ -4,7 +4,7 @@ import serial
 import errors
 
 
-class CommunicationHandler:
+class CommunicationInterface:
     """Handles communication with the sensor interface"""
 
     def __init__(self, serial_link: serial.Serial):

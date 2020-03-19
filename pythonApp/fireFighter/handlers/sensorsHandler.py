@@ -1,6 +1,6 @@
 import numpy as np
 
-from hardwarehandler import HardwareHandler
+from handlers.hardwarehandler import HardwareHandler
 
 
 class SensorsHandler(HardwareHandler):

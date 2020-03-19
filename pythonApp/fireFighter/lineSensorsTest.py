@@ -3,7 +3,7 @@ from time import sleep
 
 import serial
 
-import communicationHandler
+from IO import communicationInterface
 import motorController
 
 
@@ -25,7 +25,7 @@ sensors_on_line = []
 
 serialPort = serial.Serial("/dev/ttyUSB1", 115200)
 
-commHandler = communicationHandler.CommunicationHandler(serialPort)
+commHandler = communicationInterface.CommunicationInterface(serialPort)
 motors = motorController.MotorController(commHandler, 0.05)           # Adjust the brake delay for your motor.
 # onLineLED = DigitalOutputDevice(15)
 

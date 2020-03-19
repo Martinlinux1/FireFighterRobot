@@ -1,4 +1,4 @@
-from hardwarehandler import HardwareHandler
+from handlers.hardwarehandler import HardwareHandler
 
 
 class EncodersHandler(HardwareHandler):

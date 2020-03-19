@@ -1,11 +1,11 @@
-import communicationHandler
+from IO import communicationInterface
 import serial
 import motorController
 import time
 
 serialPort = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
 
-commHandler = communicationHandler.CommunicationHandler(serialPort)
+commHandler = communicationInterface.CommunicationInterface(serialPort)
 motors = motorController.MotorController(commHandler)
 
 tStart = time.time()

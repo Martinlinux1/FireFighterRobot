@@ -2,10 +2,10 @@ import time
 
 import serial
 
-import communicationHandler
+from IO import communicationInterface
 
 serialPort = serial.Serial("/dev/ttyUSB0", 115200)
-commHandler = communicationHandler.CommunicationHandler(serialPort)
+commHandler = communicationInterface.CommunicationInterface(serialPort)
 
 while True:
     time_start = time.time() * 1000
