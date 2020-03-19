@@ -18,6 +18,41 @@ class MotorController:
         self._handler.set_motor('D', 'F', speed)
         self._handler.write_motors()
 
+    def forward(self, speed: int, rotations: float):
+        encoders_data = []
+
+        while not encoders_data:
+            encoders_data = self._handler.get_encoders()
+
+        target_values = []
+
+        for encoder in encoders_data:
+            target_values.append(encoder + rotations)
+
+        while True:
+            encoders_data = []
+            while not encoders_data:
+                encoders_data = self._handler.get_encoders()
+
+            diffs = []
+            self.forward(speed)
+
+            for i in range(len(encoders_data)):
+                diffs = target_values[i] - encoders_data[i]
+
+            if abs(diffs[0]) < 5:
+                self.brake('A')
+                return
+            elif abs(diffs[1]) < 5:
+                self.brake('B')
+                return
+            elif abs(diffs[2]) < 5:
+                self.brake('C')
+                return
+            elif abs(diffs[3]) < 5:
+                self.brake('D')
+                return
+
     """Moves the robot backward."""
     def backward(self, speed: int):
         self._handler.set_motor('A', 'B', speed)
@@ -25,6 +60,41 @@ class MotorController:
         self._handler.set_motor('C', 'B', speed)
         self._handler.set_motor('D', 'B', speed)
         self._handler.write_motors()
+
+    def backward(self, speed: int, rotations: float):
+        encoders_data = []
+
+        while not encoders_data:
+            encoders_data = self._handler.get_encoders()
+
+        target_values = []
+
+        for encoder in encoders_data:
+            target_values.append(encoder - rotations)
+
+        while True:
+            encoders_data = []
+            while not encoders_data:
+                encoders_data = self._handler.get_encoders()
+
+            diffs = []
+            self.backward(speed)
+
+            for i in range(len(encoders_data)):
+                diffs = target_values[i] - encoders_data[i]
+
+            if abs(diffs[0]) < 5:
+                self.brake('A')
+                return
+            elif abs(diffs[1]) < 5:
+                self.brake('B')
+                return
+            elif abs(diffs[2]) < 5:
+                self.brake('C')
+                return
+            elif abs(diffs[3]) < 5:
+                self.brake('D')
+                return
 
     def left(self, speed: int):
         self._handler.set_motor('A', 'B', speed)
@@ -153,5 +223,10 @@ class MotorController:
         self._handler.set_motor('B', 'F', 0)
         self._handler.set_motor('C', 'F', 0)
         self._handler.set_motor('D', 'F', 0)
+
+        self._handler.write_motors()
+
+    def brake(self, motor):
+        self._handler.set_motor(motor, 'F', 0)
 
         self._handler.write_motors()
