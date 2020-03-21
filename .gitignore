@@ -5,6 +5,9 @@
 .gcc-flags.json
 .DS_Store
 pythonApp/fireFighter/__*
+pythonApp/fireFighter/build
+pythonApp/fireFighter/dist
+pythonApp/fireFighter/fireFighter.egg-info
 FireFighterSensorInterface/.vscode
 pythonApp/fireFighter/.idea
 .directory
