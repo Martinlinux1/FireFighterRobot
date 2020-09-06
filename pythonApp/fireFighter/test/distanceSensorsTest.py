@@ -1,6 +1,6 @@
 import serial
 
-from IO import communicationInterface
+from IO import commiface
 import motorController
 
 
@@ -17,7 +17,7 @@ def is_obstacle():
 
 serialPort = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.1)
 
-commHandler = communicationInterface.CommunicationInterface(serialPort)
+commHandler = commiface.CommInterface(serialPort)
 motors = motorController.MotorController(commHandler)
 
 baseSpeed = 150

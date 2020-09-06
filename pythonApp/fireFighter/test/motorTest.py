@@ -1,11 +1,11 @@
 import serial
-from IO import communicationInterface
+from IO import commiface
 import motorController
 from time import sleep
 
 serialLink = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.05)
 
-commHandler = communicationInterface.CommunicationInterface(serialLink)
+commHandler = commiface.CommInterface(serialLink)
 
 motors = motorController.MotorController(commHandler)
 

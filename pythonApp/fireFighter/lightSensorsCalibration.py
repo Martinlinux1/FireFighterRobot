@@ -1,10 +1,10 @@
 import serial
 from time import sleep
 
-from IO import communicationInterface
+from IO import commiface
 
 serialPort = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.1)
-commHandler = communicationInterface.CommunicationInterface(serialPort)
+commHandler = commiface.CommInterface(serialPort)
 
 
 print("Put your robot on white color, and press any key.")

@@ -1,13 +1,13 @@
-from IO import communicationInterface
+from IO.commiface import CommInterface, MessageType
 
 
 class SensorsReader:
-    def __init__(self, comm_interface: communicationInterface.CommunicationInterface):
+    def __init__(self, comm_interface: CommInterface):
         self._comm_interface = comm_interface
 
     """Reads data from all sensors at once."""
     def get_sensors_data(self):
-        message = self._comm_interface.encode_message(self._comm_interface.sensors_data)
+        message = self._comm_interface.encode_message(MessageType.SENSORS_DATA)
         # print(message)
         response = self._comm_interface.write_message(message)
         # print(response)

@@ -1,6 +1,5 @@
 from multiprocessing import Pipe, Event
 from abc import ABC, abstractmethod
-import numpy as np
 
 
 class HardwareHandler(ABC):
