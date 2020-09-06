@@ -19,8 +19,7 @@ class MessageType(Enum):
 
 class CommInterface:
     """Handles communication with the sensor interface"""
-    def __init__(self, serial_link: serial.Serial):
-        # serial link
+    def __init__(self, serial_link):
         self.serial = serial_link
 
         self._commStart = b'~'
