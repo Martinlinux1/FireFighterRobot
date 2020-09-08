@@ -54,7 +54,7 @@ class CommInterface:
     def encode_message(self, message_type: MessageType, data=''):
         message = self._messageStart
 
-        message += message_type
+        message += message_type.value
 
         message += self._dataStart + str(data) + self._dataEnd + self._messageEnd
 
@@ -62,11 +62,11 @@ class CommInterface:
 
     """Decodes the message."""
     def decode_message(self, message: str):
-        if '\r' in message:
-            message = message[:message.find('\r')]
+        # Remove all newline characters from message.
+        message.rstrip()
 
         if message.startswith(self._messageStart) and message.endswith(self._messageEnd):
-            if message[1] == MessageType.LIGHT_SENSOR:
+            if message[1] == MessageType.LIGHT_SENSOR.value:
                 data = message[message.find(self._dataStart) + 1:message.find(self._dataEnd, 3)]
 
                 data = np.array(data.split(self._elementsSeparator))
@@ -74,7 +74,7 @@ class CommInterface:
                 light_sensors_values = data.astype(int)
 
                 return MessageType.LIGHT_SENSOR, light_sensors_values
-            elif message[1] == MessageType.DISTANCE_SENSOR:
+            elif message[1] == MessageType.DISTANCE_SENSOR.value:
                 data = message[message.find(self._dataStart) + 1:message.find(self._dataEnd, 3)]
 
                 data = np.array(data.split(self._elementsSeparator))
@@ -82,7 +82,7 @@ class CommInterface:
                 distance_sensors_values = data.astype(int)
 
                 return MessageType.DISTANCE_SENSOR, distance_sensors_values
-            elif message[1] == MessageType.IMU_SENSOR:
+            elif message[1] == MessageType.IMU_SENSOR.value:
                 data = message[message.find(self._dataStart) + 1:message.find(self._dataEnd, 3)]
 
                 angle = float(data)
@@ -91,7 +91,7 @@ class CommInterface:
                     return MessageType.IMU_SENSOR, 2 * 180 + angle
                 else:
                     return MessageType.IMU_SENSOR, angle
-            elif message[1] == MessageType.ENCODERS:
+            elif message[1] == MessageType.ENCODERS.value:
                 data = message[message.find(self._dataStart) + 1:message.find(self._dataEnd, 3)]
 
                 data = np.array(data.split(self._elementsSeparator))
@@ -99,10 +99,6 @@ class CommInterface:
                 encoders_values = data.astype(float)
 
                 return MessageType.ENCODERS, encoders_values
-
-            elif message[1] == MessageType.MOTOR:
-                return MessageType.MOTOR, message
-
             else:
                 raise errors.InvalidMessageException
 
