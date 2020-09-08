@@ -1,3 +1,4 @@
+import errors
 from IO.commiface import CommInterface, MessageType
 
 
@@ -19,4 +20,4 @@ class EncodersInterface:
         if message == response:
             return True
         else:
-            return False
+            raise errors.InvalidMessageException
