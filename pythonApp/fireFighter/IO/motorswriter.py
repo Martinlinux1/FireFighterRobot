@@ -9,7 +9,7 @@ class MotorsWriter:
     """Turns on a motor."""
     def write_motor(self, motor, direction, speed):
         # Construct the request.
-        motors_data = motor + "," + direction + "," + str(speed)
+        motors_data = [motor, direction, str(speed)]
 
         message = self._comm_interface.encode_message(MessageType.MOTOR, motors_data)
 

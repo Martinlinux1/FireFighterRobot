@@ -36,8 +36,17 @@ class TestEncodeMessage(unittest.TestCase):
         serial = MockSerial()
         commiface = CommInterface(serial)
 
-        data = 'A,F,255'
-        expected_encoded_message = '<' + str(MessageType.MOTOR.value) + '{' + data + '}' + '>'
+        data = ['A', 'F', 255]
+        data_str = ''
+        for value in data:
+            if type(value) == str:
+                data_str += value
+            else:
+                data_str += str(value)
+            data_str += ','
+        data_str = data_str[:-1]
+
+        expected_encoded_message = '<' + str(MessageType.MOTOR.value) + '{' + data_str + '}' + '>'
         encoded_message = commiface.encode_message(MessageType.MOTOR, data)
 
         self.assertEqual(expected_encoded_message, encoded_message)

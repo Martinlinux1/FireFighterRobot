@@ -1,7 +1,6 @@
 from enum import Enum
 
 import numpy as np
-import serial
 
 import errors
 
@@ -19,6 +18,7 @@ class MessageType(Enum):
 
 class CommInterface:
     """Handles communication with the sensor interface"""
+
     def __init__(self, serial_link):
         self.serial = serial_link
 
@@ -32,6 +32,7 @@ class CommInterface:
         self._elementsSeparator = ','
 
     """Sends message via serial link."""
+
     def write_message(self, message: str):
         if not self.serial.is_open:
             self.serial.open()
@@ -51,16 +52,28 @@ class CommInterface:
             raise errors.InvalidMessageException
 
     """Encodes the message."""
-    def encode_message(self, message_type: MessageType, data=''):
+
+    def encode_message(self, message_type: MessageType, data=None):
+        data_str = ''
+        if data is not None:
+            for value in data:
+                if type(value) == str:
+                    data_str += value
+                else:
+                    data_str += str(value)
+                data_str += ','
+            data_str = data_str[:-1]
+
         message = self._messageStart
 
         message += message_type.value
 
-        message += self._dataStart + str(data) + self._dataEnd + self._messageEnd
+        message += self._dataStart + str(data_str) + self._dataEnd + self._messageEnd
 
         return message
 
     """Decodes the message."""
+
     def decode_message(self, message: str):
         # Remove all newline characters from message.
         message.rstrip()
@@ -103,6 +116,7 @@ class CommInterface:
                 raise errors.InvalidMessageException
 
     """Sends test message and waits for response."""
+
     def echo(self):
         message = self._messageStart + str(MessageType.ECHO) + self._dataStart + self._dataEnd + self._messageEnd
 
