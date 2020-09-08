@@ -31,5 +31,30 @@ class TestWriteMotor(unittest.TestCase):
         self.assertRaises(errors.InvalidMessageException, motors_writer.write_motor, 'A', 'F', 255)
 
 
+class TestBrake(unittest.TestCase):
+    def test_brake_successful(self):
+        serial = MockSerial()
+        commiface = CommInterface(serial)
+        motors_writer = MotorsWriter(commiface)
+
+        response_message = '<B{}>\n'
+        serial.add_response('~{}'.format(response_message))
+
+        success = motors_writer.brake()
+
+        self.assertTrue(success)
+        self.assertEqual(response_message, serial.get_sent_message())
+
+    def test_brake_invalid_response(self):
+        serial = MockSerial()
+        commiface = CommInterface(serial)
+        motors_writer = MotorsWriter(commiface)
+
+        response_message = 'ncirncierc'
+        serial.add_response('~{}'.format(response_message))
+
+        self.assertRaises(errors.InvalidMessageException, motors_writer.brake)
+
+
 if __name__ == '__main__':
     unittest.main()
