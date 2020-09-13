@@ -1,4 +1,3 @@
-from abc import ABC
 from multiprocessing import Pipe
 
 from handlers.handleriface import HandlerIface
@@ -23,14 +22,17 @@ class MotorsHandler(HandlerIface):
                 and self._motors_values[2] == 0 and self._motors_values[3] == 0:
             self._motors.brake()
 
-        if self._motors_values[0]:
-            self._motors.write_motor('A', self._motors_values[0][0], self._motors_values[0][1])
-        if self._motors_values[1]:
-            self._motors.write_motor('B', self._motors_values[1][0], self._motors_values[1][1])
-        if self._motors_values[2]:
-            self._motors.write_motor('C', self._motors_values[2][0], self._motors_values[2][1])
-        if self._motors_values[3]:
-            self._motors.write_motor('D', self._motors_values[3][0], self._motors_values[3][1])
+        try:
+            if self._motors_values[0]:
+                self._motors.write_motor('A', self._motors_values[0][0], self._motors_values[0][1])
+            if self._motors_values[1]:
+                self._motors.write_motor('B', self._motors_values[1][0], self._motors_values[1][1])
+            if self._motors_values[2]:
+                self._motors.write_motor('C', self._motors_values[2][0], self._motors_values[2][1])
+            if self._motors_values[3]:
+                self._motors.write_motor('D', self._motors_values[3][0], self._motors_values[3][1])
+        except IndexError:
+            return
 
     def set(self, value):
         self._writer.send(value)
