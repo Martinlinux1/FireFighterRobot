@@ -1,22 +1,35 @@
-from handlers.hardwarehandler import HardwareHandler
+from multiprocessing import Pipe, Event
+
+from handlers.handleriface import HandlerIface
 
 
-class EncodersHandler(HardwareHandler):
+class EncodersHandler(HandlerIface):
     def __init__(self, encoders_reader):
-        super().__init__(encoders_reader, True)
+        super().__init__(True)
+        self._main, self._update = Pipe()
+        self._read_event = Event()
+
+        self._encoders = encoders_reader
+        self._encoders_data = []
 
     def update(self):
         if self._update.poll():
-            if self._update.recv() == 'R':
-                self._hardware.reset_encoders()
+            message = self._update.recv()
+            if message == 'R':
+                self.reset()
 
-        if self._event.is_set():
-            self._event.clear()
-            encoders_data = self._hardware.get_encoders_data()[1]
+        if self._read_event.is_set():
+            self._read_event.clear()
+            encoders_data = self._encoders.get_encoders_data()[1]
 
             self._update.send(encoders_data)
 
-    def reset(self):
-        super().set('R')
-        super().write()
+    def get(self):
+        if self._main.poll():
+            self._encoders_data = self._main.recv()
 
+    def set(self, value):
+        self._main.send(value)
+
+    def reset(self):
+        self.set('R')

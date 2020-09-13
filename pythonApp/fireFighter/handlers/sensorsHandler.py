@@ -1,22 +1,32 @@
-import numpy as np
+from multiprocessing import Pipe, Event
 
-from handlers.hardwarehandler import HardwareHandler
+from handlers.handleriface import HandlerIface
 
 
-class SensorsHandler(HardwareHandler):
+class SensorsHandler(HandlerIface):
     def __init__(self, sensors_reader):
-        super().__init__(sensors_reader, False)
-        self._light_sensors = np.zeros(8)
-        self._distance_sensors = np.zeros(5)
-        self._imu_sensor = 0
+        super().__init__()
+        self._reader, self._writer = Pipe(duplex=False)
+        self._sensors = sensors_reader
+        self._sensors_data = []
+        self._read_event = Event()
 
     def update(self):
-        if self._event.is_set():
-            self._event.clear()
-            sensors_data = self._hardware.get_sensors_data()
+        if self._read_event.is_set():
+            self._read_event.clear()
+            sensors_data = self._sensors.get_sensors_data()
 
-            self._light_sensors = sensors_data[0][1]
-            self._distance_sensors = sensors_data[1][1]
-            self._imu_sensor = sensors_data[2][1]
+            light_sensors = sensors_data[0][1]
+            distance_sensors = sensors_data[1][1]
+            imu_sensor = sensors_data[2][1]
 
-            self._writer.send([self._light_sensors, self._distance_sensors, self._imu_sensor])
+            self._writer.send([light_sensors, distance_sensors, imu_sensor])
+
+    def get(self):
+        if self._reader.poll():
+            self._sensors_data = self._reader.recv()
+
+        return self._sensors_data
+
+    def set(self, value):
+        pass

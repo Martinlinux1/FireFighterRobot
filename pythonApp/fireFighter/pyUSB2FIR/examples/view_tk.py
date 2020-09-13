@@ -2,7 +2,7 @@ import queue
 import threading
 import tkinter as tk
 
-from pyUSB2FIR.pyusb2fir.usb2fir import USB2FIR
+from pyusb2fir import USB2FIR
 
 
 def rgb(minimum, maximum, value):
@@ -52,9 +52,7 @@ class TempView(tk.Tk):
 
         self.after(100, self.updateMap)
 
-
     def setTempValues(self, tempvalues):
-
         maximum = 0
         maximum_idx = 0
         minimum = 1000
@@ -80,8 +78,10 @@ class TempView(tk.Tk):
             outline = color
             if i == self.cursorpos:
                 outline = 'white'
-            self.tempmap.create_rectangle(x, y, x + self.pixelsize - 1, y + self.pixelsize - 1, fill=color, outline=outline)
-
+            try:
+                self.tempmap.create_rectangle(x, y, x + self.pixelsize - 1, y + self.pixelsize - 1, fill=color, outline=outline)
+            except tk.TclError:
+                print(t, minimum, maximum, color)
             i = i + 1
             
         self.tempstr.set('% 3.1f    % 3.1f    % 3.1f' % (minimum, tempvalues[self.cursorpos], maximum))
@@ -89,7 +89,7 @@ class TempView(tk.Tk):
 
 app = TempView()
 
-u2f = USB2FIR()
+u2f = USB2FIR(refreshRate=4)
 tempvalues = u2f.initializeFrame()
 t = threading.Thread(target=u2f_fetcher, args=(u2f, app.queue,))
 t.start()

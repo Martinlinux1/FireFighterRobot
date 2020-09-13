@@ -1,10 +1,15 @@
-from handlers.hardwarehandler import HardwareHandler
+from abc import ABC
+from multiprocessing import Pipe
+
+from handlers.handleriface import HandlerIface
 
 
-class MotorsHandler(HardwareHandler):
+class MotorsHandler(HandlerIface):
     def __init__(self, motors_writer):
-        super().__init__(motors_writer, False)
-        self._motors = []
+        super().__init__()
+        self._reader, self._writer = Pipe(duplex=False)
+        self._motors = motors_writer
+        self._motors_values = []
         self._motorA = []
         self._motorB = []
         self._motorC = []
@@ -12,19 +17,23 @@ class MotorsHandler(HardwareHandler):
 
     def update(self):
         if self._reader.poll():
-            self._motors = self._reader.recv()
+            self._motors_values = self._reader.recv()
 
-        if self._motors[0] == 0 and self._motors[1] == 0 and self._motors[2] == 0 and self._motors[3] == 0:
-            self._hardware.brake()
+        if self._motors_values[0] == 0 and self._motors_values[1] == 0 \
+                and self._motors_values[2] == 0 and self._motors_values[3] == 0:
+            self._motors.brake()
 
-        if self._motors[0]:
-            self._hardware.write_motor('A', self._motors[0][0], self._motors[0][1])
-        if self._motors[1]:
-            self._hardware.write_motor('B', self._motors[1][0], self._motors[1][1])
-        if self._motors[2]:
-            self._hardware.write_motor('C', self._motors[2][0], self._motors[2][1])
-        if self._motors[3]:
-            self._hardware.write_motor('D', self._motors[3][0], self._motors[3][1])
+        if self._motors_values[0]:
+            self._motors.write_motor('A', self._motors_values[0][0], self._motors_values[0][1])
+        if self._motors_values[1]:
+            self._motors.write_motor('B', self._motors_values[1][0], self._motors_values[1][1])
+        if self._motors_values[2]:
+            self._motors.write_motor('C', self._motors_values[2][0], self._motors_values[2][1])
+        if self._motors_values[3]:
+            self._motors.write_motor('D', self._motors_values[3][0], self._motors_values[3][1])
+
+    def set(self, value):
+        self._writer.send(value)
 
     def set_motor(self, motor, direction, speed):
         if motor == 'A':
@@ -36,5 +45,7 @@ class MotorsHandler(HardwareHandler):
         elif motor == 'D':
             self._motorD = [direction, speed]
 
-    def write(self):
-        self._writer.send([self._motorA, self._motorB, self._motorC, self._motorD])
+        self.set([self._motorA, self._motorB, self._motorC, self._motorD])
+
+    def get(self):
+        pass

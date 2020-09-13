@@ -1,7 +1,7 @@
 import serial
 import multiprocessing
 from IO import commiface, encodersiface
-from handlers import hardwarehandler
+from handlers import handleriface
 
 
 def encoders_reading():
@@ -13,7 +13,7 @@ serial_port = serial.Serial("/dev/ttyUSB0", 115200)
 comm_handler = commiface.CommInterface(serial_port)
 encoders = encodersiface.EncodersInterface(comm_handler)
 
-hardwarehandler = hardwarehandler.HardwareHandler(None, None, encoders)
+hardwarehandler = handleriface.HandlerIface(None, None, encoders)
 p1 = multiprocessing.Process(target=encoders_reading)
 p1.daemon = True
 p1.start()

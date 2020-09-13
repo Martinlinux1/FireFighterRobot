@@ -23,7 +23,7 @@ class MotorController:
         encoders_data = []
 
         while not encoders_data:
-            encoders_data = self._encoders_handler.get()
+            encoders_data = self._encoders_handler.read()
 
         target_values = []
 
@@ -33,7 +33,7 @@ class MotorController:
         while True:
             encoders_data = []
             while not encoders_data:
-                encoders_data = self._encoders_handler.get()
+                encoders_data = self._encoders_handler.read()
 
             diffs = []
             self.forward(speed)
@@ -66,7 +66,7 @@ class MotorController:
         encoders_data = []
 
         while not encoders_data:
-            encoders_data = self._encoders_handler.get()
+            encoders_data = self._encoders_handler.read()
 
         target_values = []
 
@@ -76,7 +76,7 @@ class MotorController:
         while True:
             encoders_data = []
             while not encoders_data:
-                encoders_data = self._encoders_handler.get()
+                encoders_data = self._encoders_handler.read()
 
             diffs = []
             self.backward(speed)
@@ -172,7 +172,7 @@ class MotorController:
         sensors_data = []
 
         while not sensors_data:
-            sensors_data = self._sensors_handler.get()
+            sensors_data = self._sensors_handler.read()
 
         robot_angle = sensors_data[2]
 
@@ -185,7 +185,7 @@ class MotorController:
         while True:
             sensors_data = []
             while not sensors_data:
-                sensors_data = self._sensors_handler.get()
+                sensors_data = self._sensors_handler.read()
 
             robot_angle = sensors_data[2]
 
