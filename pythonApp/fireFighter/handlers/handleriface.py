@@ -8,6 +8,10 @@ class HandlerIface(ABC):
         pass
 
     @abstractmethod
+    def set(self, value):
+        pass
+
+    @abstractmethod
     def update(self):
         pass
 
