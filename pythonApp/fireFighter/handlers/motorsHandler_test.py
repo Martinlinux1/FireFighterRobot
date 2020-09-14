@@ -33,9 +33,19 @@ class TestUpdate(unittest.TestCase):
 
         self.assertEqual(motors_expected_value, motors_values)
 
+
 class TestSetMotor(unittest.TestCase):
     def test_set_motor(self):
+        motor_expected_value = ['A', 'F', 127]
+        motors_writer = MockMotorsWriter()
+        motors_handler = MotorsHandler(motors_writer)
+        motors_handler.set_motor(motor_expected_value[0], motor_expected_value[1], motor_expected_value[2])
 
+        motors_handler.update()
+
+        motors_values = motors_writer.get_motors_values()
+
+        self.assertEqual(motor_expected_value, motors_values[0])
 
 
 if __name__ == '__main__':

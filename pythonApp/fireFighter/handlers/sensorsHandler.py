@@ -10,6 +10,7 @@ class SensorsHandler(HandlerIface):
         self._sensors = sensors_reader
         self._sensors_data = []
         self._read_event = Event()
+        self._read_event.set()
 
     def update(self):
         if self._read_event.is_set():
