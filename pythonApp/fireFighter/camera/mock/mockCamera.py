@@ -2,7 +2,7 @@ import numpy as np
 import random
 
 
-class FakeCamera:
+class MockCamera:
     def __init__(self, num_candles, fire_threshold):
         self._num_candles = num_candles
         self._fire_threshold = fire_threshold

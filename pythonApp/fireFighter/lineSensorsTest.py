@@ -4,7 +4,7 @@ from time import sleep
 import serial
 
 from IO import commiface
-import motorController
+from motors import motors_controller
 
 
 # from gpiozero import DigitalOutputDevice
@@ -26,7 +26,7 @@ sensors_on_line = []
 serialPort = serial.Serial("/dev/ttyUSB1", 115200)
 
 commHandler = commiface.CommInterface(serialPort)
-motors = motorController.MotorController(commHandler, 0.05)           # Adjust the brake delay for your motor.
+motors = motors_controller.MotorController(commHandler, 0.05)           # Adjust the brake delay for your motor.
 # onLineLED = DigitalOutputDevice(15)
 
 t1 = LightSensorReader()

@@ -1,17 +1,26 @@
-import serial
-from IO import commiface
-import motorController
 from time import sleep
 
-serialLink = serial.Serial("/dev/ttyUSB0", 115200, timeout=0.05)
+import serial
 
-commHandler = commiface.CommInterface(serialLink)
+from IO import commiface, sensorsreader, motorswriter
+from handlers import motors_handler
+from motors import motors_controller
 
-motors = motorController.MotorController(commHandler)
+serial_port = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.05)
+
+comm_handler = commiface.CommInterface(serial_port)
+
+sensors_reader = sensorsreader.SensorsReader(comm_handler)
+motors_writer = motorswriter.MotorsWriter(comm_handler)
+
+motors_handler = motors_handler.MotorsHandler(motors_writer)
+motors = motors_controller.MotorController(motors_handler, 0.05)
 
 while True:
-    # print(commHandler.get_imu_sensor_data())
-    motors.turn(45.0, 255)
-    sleep(1)
-
+    motors.backward(255)
+    motors_handler.update()
+    sleep(5)
+    motors.forward(255)
+    motors_handler.update()
+    sleep(5)
 

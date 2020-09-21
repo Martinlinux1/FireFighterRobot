@@ -1,7 +1,7 @@
 import unittest
 
 from handlers.mock.mock_motorswriter import MockMotorsWriter
-from handlers.motorsHandler import MotorsHandler
+from handlers.motors_handler import MotorsHandler
 
 
 class TestUpdate(unittest.TestCase):

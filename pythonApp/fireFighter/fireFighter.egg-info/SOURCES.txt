@@ -12,5 +12,4 @@ test/encodersTest.py
 test/fakeCamera.py
 test/fakeSerial.py
 test/motorTest.py
-test/serialCommTest.py
 test/someMotorTest.py

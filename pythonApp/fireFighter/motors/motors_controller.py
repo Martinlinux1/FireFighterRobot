@@ -6,8 +6,15 @@ class MotorController:
 
     def __init__(self, motors_handler, sensors_handler, encoders_handler, brake_delay):
         self._handler = motors_handler
+        self._sensors_input = True
         self._sensors_handler = sensors_handler
         self._encoders_handler = encoders_handler
+        self._mathUtils = mathUtils.MathUtils()
+        self._brake_delay = brake_delay
+
+    def __init__(self, motors_handler, brake_delay):
+        self._handler = motors_handler
+        self._sensors_input = False
         self._mathUtils = mathUtils.MathUtils()
         self._brake_delay = brake_delay
 
@@ -20,6 +27,9 @@ class MotorController:
         self._handler.write_motors()
 
     def forward(self, speed: int, rotations: float):
+        if not self._sensors_input:
+            return
+
         encoders_data = []
 
         while not encoders_data:
@@ -63,6 +73,9 @@ class MotorController:
         self._handler.write_motors()
 
     def backward(self, speed: int, rotations: float):
+        if not self._sensors_input:
+            return
+
         encoders_data = []
 
         while not encoders_data:
@@ -113,6 +126,9 @@ class MotorController:
 
     """Slides the robot to a given angle."""
     def slide(self, angle: float, speed: int):
+        if not self._sensors_input:
+            return
+
         if angle >= 0:
             if angle <= 45:
                 bc_speed = int(self._mathUtils.valmap(angle, 45, 0, 0, speed))
@@ -169,6 +185,9 @@ class MotorController:
 
     """Turns the robot to a given angle"""
     def turn(self, angle: float, speed: int):
+        if not self._sensors_input:
+            return
+
         sensors_data = []
 
         while not sensors_data:
@@ -202,6 +221,9 @@ class MotorController:
                 return
 
     def point_to(self, angle, speed):
+        if not self._sensors_input:
+            return
+
         sensors_data = []
 
         while not sensors_data:

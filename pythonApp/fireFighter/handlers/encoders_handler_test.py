@@ -1,7 +1,7 @@
 import unittest
 
 from IO.commiface import MessageType
-from handlers.encodersHandler import EncodersHandler
+from handlers.encoders_handler import EncodersHandler
 from handlers.mock.mock_encoders_iface import MockEncodersIface
 
 

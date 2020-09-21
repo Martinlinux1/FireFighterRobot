@@ -1,11 +1,10 @@
 import multiprocessing
 
 import numpy as np
-from pyusb2fir import USB2FIR
 
 
 class CameraReader:
-    def __init__(self, thermal_camera: USB2FIR):
+    def __init__(self, thermal_camera):
         self._thermal_camera = thermal_camera
 
         self._temp_data_pipe_reader, self._temp_data_pipe_writer = multiprocessing.Pipe(duplex=False)
@@ -15,7 +14,7 @@ class CameraReader:
 
         self._temperatures = []
 
-    def update_camera_data(self):
+    def update(self):
         sub_frame_0 = self._thermal_camera.initializeFrame()
         sub_frame_1 = self._thermal_camera.initializeFrame()
         frame = self._thermal_camera.initializeFrame()
@@ -33,7 +32,7 @@ class CameraReader:
             self._camera_read_event.clear()
             self._temp_data_pipe_writer.send(frame)
 
-    def get_camera_data(self):
+    def get(self):
         if self._temp_data_pipe_reader.poll():
             self._camera_read_event.set()
             self._temperatures = self._temp_data_pipe_reader.recv()

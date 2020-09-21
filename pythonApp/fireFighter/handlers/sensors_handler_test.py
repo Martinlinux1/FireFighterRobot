@@ -2,7 +2,7 @@ import unittest
 
 from IO.commiface import MessageType
 from handlers.mock.mock_sensorsreader import MockSensorsReader
-from handlers.sensorsHandler import SensorsHandler
+from handlers.sensors_handler import SensorsHandler
 
 
 class TestUpdate(unittest.TestCase):
