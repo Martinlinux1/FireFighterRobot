@@ -1,12 +1,3 @@
-/**
- * The sensor interface of fire fighter robot. Reads light, distance, 
- * angle of the robot and controls the motors(4). It communicates with Raspberry Pi 
- * logic unit, that controls the robot.
- * 
- * Creator: Martinlinux
- * Version: 1.0
- */
-
 #include <Arduino.h>
 #include <Wire.h>
 #include <qtr-sensors-arduino-master/QTRSensors.h>
